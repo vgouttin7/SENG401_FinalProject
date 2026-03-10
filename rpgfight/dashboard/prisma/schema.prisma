@@ -1,0 +1,199 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── CAMPAIGNS & STAGES ────────────────────────────────────────
+
+model Campaign {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique // "Ancient Persia", "Ancient Greece", "Roman Empire", "Ancient Egypt"
+  description String   @default("")
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  stages Stage[]
+}
+
+model Stage {
+  id         Int    @id @default(autoincrement())
+  campaignId Int
+  stageNum   Int // 1, 2, 3, 4... within campaign
+  eraName    String // "Early Persia", "Rise of Cyrus", etc.
+
+  // Combat settings
+  roundTime     Int    @default(45) // seconds
+  spawnInterval Int    @default(6)  // seconds
+  background    String @default("") // sprite path for background image
+  requiresStomp Boolean @default(false)
+
+  // Tile map (32x18 grid stored as JSON array of arrays)
+  tileMap Json // [[0,0,1,...], [0,0,0,...], ...]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  campaign       Campaign        @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  dialogueLines  DialogueLine[]
+  stageEnemies   StageEnemy[]
+  questions      Question[]
+  modifierPool   ModifierPool[]
+
+  @@unique([campaignId, stageNum])
+}
+
+// ─── DIALOGUE SYSTEM ───────────────────────────────────────────
+
+model Character {
+  id        Int    @id @default(autoincrement())
+  name      String // "Cyrus the Great", "Zeus", "Caesar"
+  color     String @default("#ffffff") // hex color for dialogue text
+  portrait  String @default("") // sprite path for character portrait
+  role      String @default("narrator") // narrator, teacher, antagonist
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  dialogueLines DialogueLine[]
+}
+
+model DialogueLine {
+  id          Int    @id @default(autoincrement())
+  stageId     Int
+  characterId Int
+  text        String
+  sortOrder   Int    @default(0)
+
+  stage     Stage     @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  character Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+
+  @@index([stageId, sortOrder])
+}
+
+// ─── ENEMY SYSTEM ──────────────────────────────────────────────
+
+model EnemyTemplate {
+  id            Int    @id @default(autoincrement())
+  name          String @unique // "ImmortalSoldier", "Minotaur", "Gladiator"
+  displayName   String // "Persian Immortal", "Minotaur", "Roman Gladiator"
+  speedModifier Float  @default(0) // added to base speed range
+  hp            Int    @default(1)
+  spriteWalk    String @default("") // path to walk sprite folder
+  spriteDead    String @default("") // path to dead sprite folder
+  description   String @default("")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  stageEnemies StageEnemy[]
+}
+
+// Join table: which enemies appear in which stage + stage-specific overrides
+model StageEnemy {
+  id              Int  @id @default(autoincrement())
+  stageId         Int
+  enemyTemplateId Int
+  minSpeed        Int  @default(1)
+  maxSpeed        Int  @default(3)
+
+  stage         Stage         @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  enemyTemplate EnemyTemplate @relation(fields: [enemyTemplateId], references: [id], onDelete: Cascade)
+
+  @@unique([stageId, enemyTemplateId])
+}
+
+// ─── QUIZ SYSTEM ───────────────────────────────────────────────
+
+model Question {
+  id           Int    @id @default(autoincrement())
+  stageId      Int
+  text         String
+  choices      Json   // ["choice1", "choice2", "choice3", "choice4"]
+  correctIndex Int    // 0-3
+  explanation  String @default("")
+  sortOrder    Int    @default(0)
+
+  stage Stage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+
+  @@index([stageId, sortOrder])
+}
+
+// ─── MODIFIER / POWER-UP SYSTEM ────────────────────────────────
+
+model ModifierDef {
+  id          Int    @id @default(autoincrement())
+  type        String // EXTRA_DASH, HEALTH_BOOST, SPEED_UP, DAMAGE_UP, SHIELD
+  name        String // "Swift Feet", "Iron Shield"
+  description String @default("")
+  value       Float  // magnitude of the buff
+  isPositive  Boolean @default(true) // false = penalty
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  modifierPools ModifierPool[]
+}
+
+// Which modifiers are available as rewards in which stage
+model ModifierPool {
+  id            Int @id @default(autoincrement())
+  stageId       Int
+  modifierDefId Int
+  sortOrder     Int @default(0)
+
+  stage       Stage       @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  modifierDef ModifierDef @relation(fields: [modifierDefId], references: [id], onDelete: Cascade)
+
+  @@unique([stageId, modifierDefId])
+}
+
+// ─── PLAYER CONFIG ─────────────────────────────────────────────
+
+model PlayerConfig {
+  id                    Int   @id @default(autoincrement())
+  name                  String @unique @default("default")
+  horizontalAcceleration Float @default(2)
+  friction              Float @default(0.15)
+  verticalAcceleration  Float @default(0.8)
+  jumpSpeed             Float @default(23)
+  startingHealth        Int   @default(100)
+  beamVelocity          Float @default(20)
+  beamRange             Float @default(500)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── SPRITE ASSETS ─────────────────────────────────────────────
+
+model SpriteAsset {
+  id       Int    @id @default(autoincrement())
+  category String // "enemy", "player", "tile", "background", "portal", "character"
+  name     String // "immortal_walk", "stage_1_bg"
+  filePath String // path relative to game/images/
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([category, name])
+}
+
+// ─── TILE TYPE DEFINITIONS ─────────────────────────────────────
+
+model TileType {
+  id       Int    @id @default(autoincrement())
+  code     Int    @unique // 0=empty, 1=ground, 2=platform, etc.
+  name     String // "Empty", "Ground", "Platform Surface"
+  color    String @default("#888888") // for tile map editor preview
+  sprite   String @default("") // path to tile sprite
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

@@ -161,3 +161,8 @@ init -5 python:
                 self.image = self.walk_left_sprites[self.current_sprite_index]
             else:
                 self.image = self.walk_right_sprites[self.current_sprite_index]
+
+    # Register enemy classes so the config loader can find them by name
+    register_enemy_class("ImmortalSoldier", ImmortalSoldier)
+    register_enemy_class("WarElephant", WarElephant)
+    register_enemy_class("DarkSorcerer", DarkSorcerer)

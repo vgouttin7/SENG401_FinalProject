@@ -7,6 +7,16 @@ default current_stage = 1
 default combat_stage = None
 default game_score = 0
 
+# Config state - loaded from API/cache or None for fallback
+default _game_config = None
+default _dynamic_stages = None
+default _dynamic_questions = None
+default _dynamic_dialogue = None
+default _total_stages = 4
+
+# Dynamic character for dialogue (when loaded from DB)
+default _dyn_char = None
+
 
 label start:
 
@@ -15,71 +25,37 @@ label start:
     $ current_stage = 1
     $ game_score = 0
 
-    jump stage_1
+    # Try to load config from dashboard API
+    $ _game_config = load_game_config(1)
+
+    if _game_config is not None:
+        # Config loaded from API/cache — build dynamic data
+        $ _dynamic_stages = build_stage_configs_from_json(_game_config)
+        $ _dynamic_questions = build_questions_from_json(_game_config)
+        $ _dynamic_dialogue = build_dialogue_from_json(_game_config)
+        $ _player_config = build_player_config_from_json(_game_config)
+        $ _total_stages = len(_dynamic_stages)
+
+        # Override the global STAGE_CONFIGS and STAGE_QUESTIONS
+        $ STAGE_CONFIGS.update(_dynamic_stages)
+        $ STAGE_QUESTIONS.update(_dynamic_questions)
+
+    jump run_stage
 
 
-# ==================== STAGE 1 ====================
-label stage_1:
-    $ current_stage = 1
+# ==================== DYNAMIC STAGE LOOP ====================
 
-    call dialogue_stage_1
+label run_stage:
 
-label stage_1_combat:
+    if current_stage > _total_stages:
+        jump victory
 
-    $ combat_stage = CombatStage(STAGE_CONFIGS[1], game_modifier_system)
+    # Play dialogue
+    call play_dialogue(current_stage)
 
-    window hide
-    $ quick_menu = False
-    play music zk_background_music
-    call screen combat_screen
+label run_stage_combat:
 
-    $ quick_menu = True
-    window auto
-
-    if _return == "lose":
-        jump stage_1_retry
-
-    $ game_score += combat_stage.score
-
-    "You survived the Elamite Period! Score: [combat_stage.score]"
-
-    call run_quiz(1)
-
-    jump stage_2
-
-
-label stage_1_retry:
-    $ game_score += combat_stage.score
-
-    scene black
-    with dissolve
-
-    sim_ai "You have fallen. But history gives second chances to those who seek them."
-
-    "Score so far: [game_score]"
-
-    menu:
-        "What would you like to do?"
-
-        "Retry Stage 1":
-            jump stage_1_combat
-
-        "Restart from beginning":
-            jump start
-
-        "Quit":
-            return
-
-
-# ==================== STAGE 2 ====================
-label stage_2:
-    $ current_stage = 2
-
-    call dialogue_stage_2
-
-label stage_2_combat:
-
-    $ combat_stage = CombatStage(STAGE_CONFIGS[2], game_modifier_system)
+    $ combat_stage = CombatStage(STAGE_CONFIGS[current_stage], game_modifier_system)
 
     window hide
     $ quick_menu = False
@@ -90,32 +66,34 @@ label stage_2_combat:
     window auto
 
     if _return == "lose":
-        jump stage_2_retry
+        jump run_stage_retry
 
     $ game_score += combat_stage.score
 
-    "You conquered alongside Cyrus! Score: [combat_stage.score]"
+    "[STAGE_CONFIGS[current_stage].era_name] complete! Score: [combat_stage.score]"
 
-    call run_quiz(2)
+    call run_quiz(current_stage)
 
-    jump stage_3
+    $ current_stage += 1
+
+    jump run_stage
 
 
-label stage_2_retry:
+label run_stage_retry:
     $ game_score += combat_stage.score
 
     scene black
     with dissolve
 
-    sim_ai "Cyrus faced defeat before his greatest victories. Will you rise again?"
+    "You have fallen. But history gives second chances to those who seek them."
 
     "Score so far: [game_score]"
 
     menu:
         "What would you like to do?"
 
-        "Retry Stage 2":
-            jump stage_2_combat
+        "Retry this stage":
+            jump run_stage_combat
 
         "Restart from beginning":
             jump start
@@ -124,106 +102,42 @@ label stage_2_retry:
             return
 
 
-# ==================== STAGE 3 ====================
-label stage_3:
-    $ current_stage = 3
+# ==================== DYNAMIC DIALOGUE ====================
 
-    call dialogue_stage_3
+label play_dialogue(stage_num):
 
-label stage_3_combat:
+    # If we have dynamic dialogue from the API, play it
+    if _dynamic_dialogue is not None and stage_num in _dynamic_dialogue:
+        scene black
+        with dissolve
 
-    $ combat_stage = CombatStage(STAGE_CONFIGS[3], game_modifier_system)
+        python:
+            _dialogue_lines = _dynamic_dialogue[stage_num]
 
-    window hide
-    $ quick_menu = False
-    play music zk_background_music
-    call screen combat_screen
+        while len(_dialogue_lines) > 0:
+            python:
+                _dl = _dialogue_lines.pop(0)
+                _speaker_name = _dl["speaker"]
+                _speaker_color = _dl["color"]
+                _line_text = _dl["text"]
+                # Create a dynamic Ren'Py character
+                _dyn_char = Character(_speaker_name, color=_speaker_color, what_color="#DDDDDD")
 
-    $ quick_menu = True
-    window auto
+            $ _dyn_char(_line_text)
 
-    if _return == "lose":
-        jump stage_3_retry
+        return
 
-    $ game_score += combat_stage.score
+    # Fallback: use hardcoded dialogue labels
+    if stage_num == 1:
+        call dialogue_stage_1
+    elif stage_num == 2:
+        call dialogue_stage_2
+    elif stage_num == 3:
+        call dialogue_stage_3
+    elif stage_num == 4:
+        call dialogue_stage_4
 
-    "Babylon has fallen! Score: [combat_stage.score]"
-
-    call run_quiz(3)
-
-    jump stage_4
-
-
-label stage_3_retry:
-    $ game_score += combat_stage.score
-
-    scene black
-    with dissolve
-
-    sim_ai "The walls of Babylon did not fall on the first attempt. Try again."
-
-    "Score so far: [game_score]"
-
-    menu:
-        "What would you like to do?"
-
-        "Retry Stage 3":
-            jump stage_3_combat
-
-        "Restart from beginning":
-            jump start
-
-        "Quit":
-            return
-
-
-# ==================== STAGE 4 ====================
-label stage_4:
-    $ current_stage = 4
-
-    call dialogue_stage_4
-
-label stage_4_combat:
-
-    $ combat_stage = CombatStage(STAGE_CONFIGS[4], game_modifier_system)
-
-    window hide
-    $ quick_menu = False
-    play music zk_background_music
-    call screen combat_screen
-
-    $ quick_menu = True
-    window auto
-
-    if _return == "lose":
-        jump stage_4_retry
-
-    $ game_score += combat_stage.score
-
-    jump victory
-
-
-label stage_4_retry:
-    $ game_score += combat_stage.score
-
-    scene black
-    with dissolve
-
-    sim_ai "Ahriman is relentless. But so is the spirit of justice. Rise again."
-
-    "Score so far: [game_score]"
-
-    menu:
-        "What would you like to do?"
-
-        "Retry Stage 4":
-            jump stage_4_combat
-
-        "Restart from beginning":
-            jump start
-
-        "Quit":
-            return
+    return
 
 
 # ==================== VICTORY ====================
@@ -235,19 +149,7 @@ label victory:
     scene black
     with dissolve
 
-    sim_ai "..."
-
-    sim_ai "You have done it. You have understood what most of humanity refuses to learn."
-
-    sim_ai "That power without justice is tyranny. That conquest without compassion is destruction."
-
-    sim_ai "Cyrus showed the world a different path. Freedom over chains. Tolerance over forced conformity."
-
-    sim_ai "The Cyrus Cylinder remains a testament - not just to one man, but to the possibility of human progress."
-
-    sim_ai "You are free, traveler. Carry these lessons forward."
-
-    "Congratulations! You completed Chronicles of Change: Persia!"
+    "Congratulations! You completed the campaign!"
 
     "Final Score: [game_score]\nHigh Score: [persistent.high_score]"
 

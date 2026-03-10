@@ -10,6 +10,14 @@ init -5 python:
         def __init__(self, x, y, platform_tiles, portal_group, beam_group):
             AnimatedSprite.__init__(self, 80, 118, x, y)
 
+            # Apply player config from dashboard if loaded
+            if _player_config is not None:
+                self.HORIZONTAL_ACCELERATION = _player_config.get("horizontal_acceleration", 2)
+                self.HORIZONTAL_FRICTION = _player_config.get("friction", 0.15)
+                self.VERTICAL_ACCELERATION = _player_config.get("vertical_acceleration", 0.8)
+                self.VERTICAL_JUMP_SPEED = _player_config.get("jump_speed", 23)
+                self.STARTING_HEALTH = int(_player_config.get("starting_health", 100))
+
             self.move_right_sprites, self.move_left_sprites = self.generate_mirrored_animation("images/player/run/Run ({}).png", 1, 10)
             self.idle_right_sprites, self.idle_left_sprites = self.generate_mirrored_animation("images/player/idle/Idle ({}).png", 1, 10)
             self.jump_right_sprites, self.jump_left_sprites = self.generate_mirrored_animation("images/player/jump/Jump ({}).png", 1, 10)
@@ -156,6 +164,11 @@ init -5 python:
 
         def __init__(self, x, y, beam_group, player):
             GameSprite.__init__(self, 60, 60, x, y)
+
+            # Apply beam config from dashboard if loaded
+            if _player_config is not None:
+                self.VELOCITY = _player_config.get("beam_velocity", 20)
+                self.RANGE = _player_config.get("beam_range", 500)
 
             if player.velocity.x > 0:
                 self.image = Image("images/player/slash.png")

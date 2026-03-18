@@ -13,7 +13,7 @@ init -15 python:
     import os
 
     # Dashboard API settings
-    _CONFIG_API_URL = "http://localhost:3000/api/export/"
+    _CONFIG_API_URL = "http://localhost:3000/api/export/latest"
     _CONFIG_CACHE_DIR = os.path.join(config.gamedir, "config")
     _CONFIG_CACHE_FILE = os.path.join(_CONFIG_CACHE_DIR, "campaign.json")
 
@@ -21,11 +21,14 @@ init -15 python:
     _loaded_config = None
     _config_loaded_from = "none"
 
-    def _fetch_config_from_api(campaign_id=1):
+    def _fetch_config_from_api(campaign_id=None):
         """Try to fetch config from the dashboard API."""
+        url = _CONFIG_API_URL
+        if campaign_id is not None:
+            url = "http://localhost:3000/api/export/" + str(campaign_id)
+
         try:
             import urllib2
-            url = _CONFIG_API_URL + str(campaign_id)
             req = urllib2.Request(url)
             response = urllib2.urlopen(req, timeout=5)
             data = json.loads(response.read())
@@ -36,7 +39,6 @@ init -15 python:
         # Try Python 3 style
         try:
             from urllib.request import urlopen, Request
-            url = _CONFIG_API_URL + str(campaign_id)
             req = Request(url)
             response = urlopen(req, timeout=5)
             data = json.loads(response.read().decode("utf-8"))
@@ -66,7 +68,7 @@ init -15 python:
         except Exception:
             pass
 
-    def load_game_config(campaign_id=1):
+    def load_game_config(campaign_id=None):
         """
         Load campaign config. Tries API first, then cache, then returns None
         (which means the game falls back to hardcoded .rpy data).
@@ -79,6 +81,7 @@ init -15 python:
             _loaded_config = data
             _config_loaded_from = "api"
             _save_config_cache(data)
+            print("[CONFIG] Loaded from API — %d stages" % len(data.get("stages", [])))
             return data
 
         # Try cached file
@@ -86,9 +89,11 @@ init -15 python:
         if data:
             _loaded_config = data
             _config_loaded_from = "cache"
+            print("[CONFIG] Loaded from cache — %d stages" % len(data.get("stages", [])))
             return data
 
         _config_loaded_from = "fallback"
+        print("[CONFIG] No API or cache available — using hardcoded fallback")
         return None
 
     # ─── ENEMY CLASS REGISTRY ──────────────────────────────────
@@ -209,6 +214,6 @@ init -15 python:
     _player_config = None
     _preload_config = _load_cached_config()
     if _preload_config is None:
-        _preload_config = _fetch_config_from_api(1)
+        _preload_config = _fetch_config_from_api()
     if _preload_config:
         _player_config = build_player_config_from_json(_preload_config)

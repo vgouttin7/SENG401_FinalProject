@@ -33,13 +33,21 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
           <h1 className="text-3xl font-bold text-amber-400">{campaign.name}</h1>
           <p className="text-gray-500 mt-1">{campaign.description}</p>
         </div>
-        <a
-          href={`/api/export/${campaign.id}`}
-          target="_blank"
-          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors text-sm"
-        >
-          Export JSON
-        </a>
+        <div className="flex gap-2">
+          <a
+            href={`/api/export/${campaign.id}`}
+            target="_blank"
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors text-sm"
+          >
+            Export JSON
+          </a>
+          <a
+            href={`/api/export/${campaign.id}?download=true`}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors text-sm"
+          >
+            Download File
+          </a>
+        </div>
       </div>
 
       <div className="flex items-center justify-between mb-4">

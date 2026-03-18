@@ -26,7 +26,7 @@ label start:
     $ game_score = 0
 
     # Try to load config from dashboard API
-    $ _game_config = load_game_config(1)
+    $ _game_config = load_game_config()
 
     if _game_config is not None:
         # Config loaded from API/cache — build dynamic data
@@ -39,6 +39,10 @@ label start:
         # Override the global STAGE_CONFIGS and STAGE_QUESTIONS
         $ STAGE_CONFIGS.update(_dynamic_stages)
         $ STAGE_QUESTIONS.update(_dynamic_questions)
+
+        $ print("[GAME] Dynamic config applied: %d stages, %d question sets, %d dialogue sets" % (len(_dynamic_stages), len(_dynamic_questions), len(_dynamic_dialogue)))
+    else:
+        $ print("[GAME] No dynamic config — using hardcoded defaults")
 
     jump run_stage
 

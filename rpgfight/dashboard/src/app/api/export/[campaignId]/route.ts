@@ -70,5 +70,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ campaig
     })),
   };
 
+  // If ?download=true, return as a downloadable file
+  const url = new URL(_req.url);
+  if (url.searchParams.get("download") === "true") {
+    const jsonStr = JSON.stringify(exportData, null, 2);
+    return new Response(jsonStr, {
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Disposition": `attachment; filename="campaign.json"`,
+      },
+    });
+  }
+
   return NextResponse.json(exportData);
 }

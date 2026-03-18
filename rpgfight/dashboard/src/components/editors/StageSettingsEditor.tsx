@@ -10,6 +10,9 @@ interface Props {
     spawnInterval: number;
     background: string;
     requiresStomp: boolean;
+    dialogueMusic: string;
+    combatMusic: string;
+    quizMusic: string;
   };
   onSave: () => void;
 }
@@ -21,6 +24,9 @@ export default function StageSettingsEditor({ stage, onSave }: Props) {
     spawnInterval: stage.spawnInterval,
     background: stage.background,
     requiresStomp: stage.requiresStomp,
+    dialogueMusic: stage.dialogueMusic ?? "",
+    combatMusic: stage.combatMusic ?? "",
+    quizMusic: stage.quizMusic ?? "",
   });
   const [saving, setSaving] = useState(false);
 
@@ -76,6 +82,36 @@ export default function StageSettingsEditor({ stage, onSave }: Props) {
           type="text"
           value={form.background}
           onChange={(e) => setForm({ ...form, background: e.target.value })}
+          className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-gray-100 focus:border-amber-500 focus:outline-none"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-400 mb-1">Dialogue Music Path</label>
+        <input
+          type="text"
+          value={form.dialogueMusic}
+          onChange={(e) => setForm({ ...form, dialogueMusic: e.target.value })}
+          placeholder="e.g. audio/story1_background_music.mp3"
+          className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-gray-100 focus:border-amber-500 focus:outline-none"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-400 mb-1">Combat Music Path</label>
+        <input
+          type="text"
+          value={form.combatMusic}
+          onChange={(e) => setForm({ ...form, combatMusic: e.target.value })}
+          placeholder="e.g. audio/zk_background_music.wav"
+          className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-gray-100 focus:border-amber-500 focus:outline-none"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-400 mb-1">Quiz Music Path</label>
+        <input
+          type="text"
+          value={form.quizMusic}
+          onChange={(e) => setForm({ ...form, quizMusic: e.target.value })}
+          placeholder="e.g. audio/kahoot_quiz_music.mp3"
           className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-gray-100 focus:border-amber-500 focus:outline-none"
         />
       </div>

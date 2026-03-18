@@ -34,6 +34,11 @@ model Stage {
   background    String @default("") // sprite path for background image
   requiresStomp Boolean @default(false)
 
+  // Audio settings
+  dialogueMusic String @default("") // audio file path for dialogue background music
+  combatMusic   String @default("") // audio file path for combat background music
+  quizMusic     String @default("") // audio file path for quiz background music
+
   // Tile map (32x18 grid stored as JSON array of arrays)
   tileMap Json // [[0,0,1,...], [0,0,0,...], ...]
 
@@ -69,6 +74,7 @@ model DialogueLine {
   stageId     Int
   characterId Int
   text        String
+  portrait    String @default("") // character portrait image path (expression override per line)
   sortOrder   Int    @default(0)
 
   stage     Stage     @relation(fields: [stageId], references: [id], onDelete: Cascade)

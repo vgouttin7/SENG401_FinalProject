@@ -30,10 +30,14 @@ init -10 python:
         def __init__(self):
             self.left = False
             self.right = False
+            self.a = False        # Alternative: move left
+            self.d = False        # Alternative: move right
+            self.w = False        # Alternative: jump (same as space)
             self.space = 0
             self.shift = 0
             self.enter = False
             self.escape = False
+            self.alt = False
 
 
     class GameSprite():
@@ -72,6 +76,16 @@ init -10 python:
             elif image_int == 5:
                 self.image = Image("images/tiles/Tile (5).png")
 
+
+            self.collision_padding = 2    # shrinks collision area on each side
+
+        def is_colliding(self, other):
+            return (
+                self.position.x + self.collision_padding <= other.position.x + other.width and
+                self.position.x + self.width - self.collision_padding >= other.position.x and
+                self.position.y + self.collision_padding <= other.position.y + other.height and
+                self.position.y + self.height - self.collision_padding >= other.position.y
+            )
 
     class AnimatedSprite(GameSprite):
         def __init__(self, width, height, x, y):

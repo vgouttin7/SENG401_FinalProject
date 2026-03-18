@@ -38,6 +38,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ campaig
       spawnInterval: stage.spawnInterval,
       background: stage.background,
       requiresStomp: stage.requiresStomp,
+      dialogueMusic: stage.dialogueMusic,
+      combatMusic: stage.combatMusic,
+      quizMusic: stage.quizMusic,
       tileMap: stage.tileMap,
       enemies: stage.stageEnemies.map((se) => ({
         name: se.enemyTemplate.name,
@@ -52,6 +55,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ campaig
       dialogue: stage.dialogueLines.map((dl) => ({
         speaker: dl.character.name,
         speakerColor: dl.character.color,
+        portrait: dl.portrait,
         text: dl.text,
       })),
       questions: stage.questions.map((q) => ({

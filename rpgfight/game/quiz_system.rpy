@@ -413,6 +413,13 @@ label run_quiz(stage_num):
     window hide
     $ quick_menu = False
 
+    stop music
+    if stage_num in _quiz_music:
+        play music _quiz_music[stage_num] fadein 1.0 volume 0.1
+    else:
+        play music "audio/kahoot_quiz_music.mp3" fadein 1.0 volume 0.1
+
+
     while quiz_question_index < len(questions):
         $ quiz_current_question = questions[quiz_question_index]
 
@@ -471,6 +478,7 @@ label run_quiz(stage_num):
                 game_modifier_system.add_modifier(_penalty)
 
         call screen penalty_display(_applied_penalties)
+        stop music fadeout 1.0
 
     $ quick_menu = True
     window auto

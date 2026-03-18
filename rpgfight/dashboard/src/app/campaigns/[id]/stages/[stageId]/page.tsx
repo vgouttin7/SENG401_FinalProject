@@ -20,11 +20,15 @@ interface StageData {
   spawnInterval: number;
   background: string;
   requiresStomp: boolean;
+  dialogueMusic: string;
+  combatMusic: string;
+  quizMusic: string;
   tileMap: number[][];
   dialogueLines: Array<{
     id: number;
     characterId: number;
     text: string;
+    portrait: string;
     sortOrder: number;
     character: { id: number; name: string; color: string };
   }>;

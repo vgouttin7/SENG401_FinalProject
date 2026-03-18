@@ -6,6 +6,7 @@ interface DialogueLine {
   id: number;
   characterId: number;
   text: string;
+  portrait: string;
   sortOrder: number;
   character: { id: number; name: string; color: string };
 }
@@ -26,9 +27,11 @@ export default function DialogueEditor({ stageId, dialogueLines, onSave }: Props
   const [characters, setCharacters] = useState<Character[]>([]);
   const [newText, setNewText] = useState("");
   const [newCharId, setNewCharId] = useState<number>(0);
+  const [newPortrait, setNewPortrait] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
   const [editCharId, setEditCharId] = useState(0);
+  const [editPortrait, setEditPortrait] = useState("");
 
   useEffect(() => {
     fetch("/api/characters").then((r) => r.json()).then(setCharacters);
@@ -42,10 +45,12 @@ export default function DialogueEditor({ stageId, dialogueLines, onSave }: Props
       body: JSON.stringify({
         characterId: newCharId,
         text: newText,
+        portrait: newPortrait,
         sortOrder: dialogueLines.length,
       }),
     });
     setNewText("");
+    setNewPortrait("");
     onSave();
   }
 
@@ -58,7 +63,7 @@ export default function DialogueEditor({ stageId, dialogueLines, onSave }: Props
     await fetch(`/api/stages/${stageId}/dialogue/${lineId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ characterId: editCharId, text: editText }),
+      body: JSON.stringify({ characterId: editCharId, text: editText, portrait: editPortrait }),
     });
     setEditingId(null);
     onSave();
@@ -68,6 +73,7 @@ export default function DialogueEditor({ stageId, dialogueLines, onSave }: Props
     setEditingId(line.id);
     setEditText(line.text);
     setEditCharId(line.characterId);
+    setEditPortrait(line.portrait || "");
   }
 
   return (
@@ -80,15 +86,24 @@ export default function DialogueEditor({ stageId, dialogueLines, onSave }: Props
               <span className="text-xs text-gray-600 mt-1 w-6 text-right">{idx + 1}</span>
               {editingId === line.id ? (
                 <div className="flex-1 space-y-2">
-                  <select
-                    value={editCharId}
-                    onChange={(e) => setEditCharId(parseInt(e.target.value))}
-                    className="px-2 py-1 bg-gray-800 border border-gray-700 rounded text-sm text-gray-200"
-                  >
-                    {characters.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
+                  <div className="flex gap-2">
+                    <select
+                      value={editCharId}
+                      onChange={(e) => setEditCharId(parseInt(e.target.value))}
+                      className="px-2 py-1 bg-gray-800 border border-gray-700 rounded text-sm text-gray-200"
+                    >
+                      {characters.map((c) => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                    <input
+                      type="text"
+                      value={editPortrait}
+                      onChange={(e) => setEditPortrait(e.target.value)}
+                      placeholder="Portrait path (e.g. images/cyrus/cyrus proud2.jpg)"
+                      className="flex-1 px-2 py-1 bg-gray-800 border border-gray-700 rounded text-sm text-gray-200"
+                    />
+                  </div>
                   <textarea
                     value={editText}
                     onChange={(e) => setEditText(e.target.value)}
@@ -102,12 +117,17 @@ export default function DialogueEditor({ stageId, dialogueLines, onSave }: Props
                 </div>
               ) : (
                 <>
-                  <span
-                    className="text-sm font-medium shrink-0 w-40"
-                    style={{ color: line.character.color }}
-                  >
-                    {line.character.name}
-                  </span>
+                  <div className="shrink-0 w-40">
+                    <span
+                      className="text-sm font-medium"
+                      style={{ color: line.character.color }}
+                    >
+                      {line.character.name}
+                    </span>
+                    {line.portrait && (
+                      <p className="text-xs text-gray-600 truncate" title={line.portrait}>{line.portrait.split("/").pop()}</p>
+                    )}
+                  </div>
                   <p className="flex-1 text-sm text-gray-300">{line.text}</p>
                   <div className="flex gap-1 shrink-0">
                     <button onClick={() => startEdit(line)} className="text-gray-600 hover:text-amber-400 text-xs">Edit</button>
@@ -132,6 +152,15 @@ export default function DialogueEditor({ stageId, dialogueLines, onSave }: Props
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
+          <input
+            type="text"
+            value={newPortrait}
+            onChange={(e) => setNewPortrait(e.target.value)}
+            placeholder="Portrait path (optional)"
+            className="w-64 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 focus:border-amber-500 focus:outline-none"
+          />
+        </div>
+        <div className="flex gap-3">
           <input
             type="text"
             value={newText}

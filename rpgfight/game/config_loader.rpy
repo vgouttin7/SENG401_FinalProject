@@ -188,11 +188,42 @@ init -15 python:
                 lines.append({
                     "speaker": dl["speaker"],
                     "color": dl.get("speakerColor", "#FFFFFF"),
+                    "portrait": dl.get("portrait", ""),
                     "text": dl["text"],
                 })
             dialogues[stage_num] = lines
 
         return dialogues
+
+    def build_stage_music_from_json(data):
+        """Extract per-stage dialogue music mapping from JSON."""
+        music = {}
+        for stage_data in data.get("stages", []):
+            stage_num = stage_data["stageNum"]
+            dm = stage_data.get("dialogueMusic", "")
+            if dm:
+                music[stage_num] = dm
+        return music
+
+    def build_combat_music_from_json(data):
+        """Extract per-stage combat music mapping from JSON."""
+        music = {}
+        for stage_data in data.get("stages", []):
+            stage_num = stage_data["stageNum"]
+            cm = stage_data.get("combatMusic", "")
+            if cm:
+                music[stage_num] = cm
+        return music
+
+    def build_quiz_music_from_json(data):
+        """Extract per-stage quiz music mapping from JSON."""
+        music = {}
+        for stage_data in data.get("stages", []):
+            stage_num = stage_data["stageNum"]
+            qm = stage_data.get("quizMusic", "")
+            if qm:
+                music[stage_num] = qm
+        return music
 
     def build_player_config_from_json(data):
         """Extract player config from JSON. Returns dict or None."""

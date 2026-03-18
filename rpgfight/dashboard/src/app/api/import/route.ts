@@ -153,6 +153,9 @@ export async function POST(req: Request) {
             spawnInterval: stage.spawnInterval ?? 6,
             background: stage.background ?? "",
             requiresStomp: stage.requiresStomp ?? false,
+            dialogueMusic: stage.dialogueMusic ?? "",
+            combatMusic: stage.combatMusic ?? "",
+            quizMusic: stage.quizMusic ?? "",
             tileMap: stage.tileMap ?? [],
           },
         });
@@ -167,6 +170,7 @@ export async function POST(req: Request) {
                 stageId: createdStage.id,
                 characterId: charId,
                 text: dl.text,
+                portrait: dl.portrait ?? "",
                 sortOrder: i,
               },
             });

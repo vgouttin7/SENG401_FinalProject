@@ -80,6 +80,16 @@ init python:
             self.lose = False
             self.won = False
 
+            self.show_controls = False    # tracks whether controls overlay is visible
+
+            if self.stage_config.stage_id >= 3:
+                self.difficulty_text = "Warning: Enemy difficulty has increased! Collect bodies to increase your score!"
+                self.difficulty_text_x = 0
+                self.difficulty_text_y = 550
+            else:
+                self.difficulty_text = None
+
+
         def render(self, width, height, st, at):
             r = renpy.Render(width, height)
 
@@ -99,7 +109,24 @@ init python:
                     font="gui/font/Poultrygeist.ttf", xalign=0.5)), width, height, st, at)
                 r.blit(st_render, (0, int(sty)))
 
+            def render_controls_image():
+                controls = renpy.render(
+                    Transform(Image("images/controls4.png"), zoom=0.75),
+                    width, height,
+                    st, at
+                )
+                r.blit(controls, (680, 754))
+
+            def render_difficulty_text():
+                if self.difficulty_text:
+                    dt = renpy.render(Fixed(Text(self.difficulty_text, size=40, color="#FF4444",
+                        outlines=[(3, "#731a1a", 0, 0)],
+                        font="gui/font/Poultrygeist.ttf", xalign=0.5)), width, height, st, at)
+                    r.blit(dt, (self.difficulty_text_x, self.difficulty_text_y))
+
+
             if not self.is_paused:
+
                 renpy.music.set_pause(False, channel="music")
 
                 self.player.update(
@@ -110,6 +137,8 @@ init python:
 
                 self.can_trigger_space_action = False
                 self.can_trigger_shift_action = False
+
+                self.show_controls = self.keyboard.alt  # Show overlay while Alt is held
 
                 for enemy in self.enemy_group:
                     enemy.update(self.WINDOW_WIDTH, self.WINDOW_HEIGHT)
@@ -137,6 +166,8 @@ init python:
                 render_pause_bg()
                 render_main_text(self.mty)
                 render_sub_text(self.sty)
+                render_controls_image()
+                render_difficulty_text()
 
                 if self.keyboard.enter:
                     self.is_paused = False
@@ -151,32 +182,60 @@ init python:
                     self.keyboard.left = True
                 elif ev.key == pygame.K_RIGHT:
                     self.keyboard.right = True
+
+                elif ev.key == pygame.K_a:
+                    self.keyboard.a = True
+                elif ev.key == pygame.K_d:
+                    self.keyboard.d = True
+                elif ev.key == pygame.K_w:
+                    self.keyboard.w = True
+
+                elif ev.key == pygame.K_LALT or ev.key == pygame.K_RALT:
+                    self.keyboard.alt = True
+
                 elif ev.key == pygame.K_SPACE:
                     self.keyboard.space += 1
                     if self.keyboard.space == 1:
                         self.can_trigger_space_action = True
+
                 elif ev.key == pygame.K_LSHIFT or ev.key == pygame.K_RSHIFT:
                     self.keyboard.shift += 1
                     if self.keyboard.shift == 1:
                         self.can_trigger_shift_action = True
+
                 elif ev.key == pygame.K_RETURN:
                     self.keyboard.enter = True
+
                 elif ev.key == pygame.K_ESCAPE:
                     self.keyboard.escape = True
                     self.is_paused = not self.is_paused
                     self.main_text = "Paused"
                     self.sub_text = "Press Enter to continue"
 
+
             elif ev.type == pygame.KEYUP:
                 if ev.key == pygame.K_LEFT:
                     self.keyboard.left = False
                 elif ev.key == pygame.K_RIGHT:
                     self.keyboard.right = False
+
+                elif ev.key == pygame.K_a:
+                    self.keyboard.a = False
+                elif ev.key == pygame.K_d:
+                    self.keyboard.d = False
+                elif ev.key == pygame.K_w:
+                    self.keyboard.w = False
+
+                elif ev.key == pygame.K_LALT or ev.key == pygame.K_RALT:
+                    self.keyboard.alt = False
+
                 elif ev.key == pygame.K_SPACE:
                     self.keyboard.space = 0
+
                 elif ev.key == pygame.K_LSHIFT or ev.key == pygame.K_RSHIFT:
                     self.keyboard.shift = 0
                     self.player.refill_dashes()
+
                 elif ev.key == pygame.K_RETURN:
                     self.keyboard.enter = False
                 elif ev.key == pygame.K_ESCAPE:
@@ -293,11 +352,13 @@ init python:
                         self.kill_enemy(enemy)
                     else:
                         # Living enemy hurts player
-                        damage = int(20 / max(self.player.damage_multiplier, 0.25))
-                        self.player.health -= damage
-                        self.damage_taken += damage
-                        renpy.sound.play("audio/zk_player_hit_sound.wav")
-                        self.player.position.x -= 256 * enemy.direction
+                        if not self.player.is_flashing:
+                            damage = int(20 / max(self.player.damage_multiplier, 0.25))
+                            self.player.health -= damage
+                            self.damage_taken += damage
+                            renpy.sound.play("audio/zk_player_hit_sound.wav")
+                            self.player.position.x -= 256 * enemy.direction
+                            self.player.start_flash()
 
 
         def check_round_completion(self):
@@ -319,11 +380,7 @@ init python:
 
     # HUD display functions
     def display_combat_score(st, at):
-        return Text(_("Score: ") + "%d" % combat_stage.score, size=40, color="#FFFFFF",
-                    outlines=[(4, "#cccccc", 0, 0)], font="gui/font/Pixel.ttf"), .1
-
-    def display_combat_health(st, at):
-        return Text(_("Health: ") + "%d" % combat_stage.player.health, size=40, color="#FFFFFF",
+        return Text(_("Score: ") + "%d" % combat_stage.score, size = 28, color="#FFFFFF",
                     outlines=[(4, "#cccccc", 0, 0)], font="gui/font/Pixel.ttf"), .1
 
     def display_combat_stage_name(st, at):
@@ -334,18 +391,61 @@ init python:
         return Text(_("Time: ") + "%d" % combat_stage.round_time, size=40, color="#FFFFFF",
                     outlines=[(4, "#cccccc", 0, 0)], font="gui/font/Pixel.ttf"), .1
 
+    def display_controls_hint(st, at):
+        return Text(_("Press Alt to see controls"), size=28, color="#AAAAAA",
+                    outlines=[(2, "#555555", 0, 0)], font="gui/font/Pixel.ttf"), 1.0
 
+screen combat_health_bar():
+
+    text "Health" size 28 color "#FFFFFF" outlines [(4, "#cccccc", 0, 0)] font "gui/font/Pixel.ttf":
+        xalign 0.0
+        xoffset 20
+        yalign 1.0
+        yoffset -20
+
+
+    bar:
+        value combat_stage.player.health
+        range combat_stage.player.max_health
+
+        xsize 300
+        ysize 30
+
+        xoffset 145
+        yoffset -28
+
+        xalign 0.0
+        yalign 1.0
+
+        left_bar Frame(Solid("#CC0000"), 2, 2)
+        right_bar Frame(Solid("#440000"), 2, 2)
+
+    text "[int(combat_stage.player.health / combat_stage.player.max_health * 100)]%":
+        size 20
+        color "#FFFFFF"
+        outlines [(2, "#000000", 0, 0)]
+        font "gui/font/Pixel.ttf"
+        xalign 0.0
+        xoffset 260
+        yalign 1.0
+        yoffset -28
 
 screen combat_screen():
     add combat_stage.stage_config.background xsize 1920 ysize 1080
     add combat_stage
 
     if not combat_stage.is_paused:
-        add DynamicDisplayable(display_combat_score) xalign 0.0 xoffset 20 yalign 0.95
-        add DynamicDisplayable(display_combat_health) xalign 0.0 xoffset 20 yalign 1.0
+        add DynamicDisplayable(display_combat_score) xalign 0.0 xoffset 20 yalign 0.94
+
+        use combat_health_bar()
+
 
         add DynamicDisplayable(display_combat_stage_name):
             xalign 0.5
             yalign 0.98
 
         add DynamicDisplayable(display_combat_time) xalign 1.0 xoffset -20 yalign 1.0
+
+        add DynamicDisplayable(display_controls_hint) xalign 1.0 xoffset -20 yalign 0.95
+        if combat_stage.show_controls:
+            add "images/controls4.png" xalign 0.5 yalign 0.5

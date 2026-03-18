@@ -41,6 +41,11 @@ init -5 python:
             self.starting_x = x
             self.starting_y = y
 
+            # Hit flash effect
+            self.is_flashing = False
+            self.flash_timer = 0
+            self.flash_duration = 90    # how many frames the flash lasts
+
             # Modifier-affected stats
             self.speed_multiplier = 1.0
             self.dash_count = 1
@@ -52,16 +57,17 @@ init -5 python:
             self.move(keyboard, max_width, can_trigger_space_action, can_trigger_shift_action)
             self.check_collisions(max_width, max_height)
             self.check_animations()
+            self.update_flash()
 
         def move(self, keyboard, max_width, can_trigger_space_action, can_trigger_shift_action):
             self.acceleration = Vector(0, self.VERTICAL_ACCELERATION)
 
             accel = self.HORIZONTAL_ACCELERATION * self.speed_multiplier
 
-            if keyboard.left:
+            if keyboard.left or keyboard.a:
                 self.acceleration.x = -1 * accel
                 self.animate(self.move_left_sprites, 0.5)
-            elif keyboard.right:
+            elif keyboard.right or keyboard.d:
                 self.acceleration.x = accel
                 self.animate(self.move_right_sprites, 0.5)
             else:
@@ -70,7 +76,7 @@ init -5 python:
                 else:
                     self.animate(self.idle_left_sprites, 0.5)
 
-            if keyboard.space > 0 and can_trigger_space_action:
+            if (keyboard.space > 0 or keyboard.w) and can_trigger_space_action:
                 self.jump()
 
             if keyboard.shift > 0 and can_trigger_shift_action:
@@ -101,7 +107,8 @@ init -5 python:
 
             for portal in self.portal_group:
                 if portal.is_colliding(self):
-                    renpy.sound.play("audio/zk_portal_sound.wav")
+                    renpy.sound.play("audio/zk_portal_sound.wav", channel=2)
+                    renpy.sound.set_volume(0.5, channel=2)
                     if self.position.x > max_width // 2:
                         self.position.x = 150
                     else:
@@ -127,19 +134,33 @@ init -5 python:
         def jump(self):
             for platform in self.platform_tiles:
                 if platform.is_colliding(self):
-                    renpy.sound.play("audio/zk_jump_sound.wav")
+                    renpy.sound.play("audio/zk_jump_sound.wav", channel=0)
+                    renpy.sound.set_volume(0.5, channel=0)
                     self.velocity.y = -1 * self.VERTICAL_JUMP_SPEED
                     self.animate_jump = True
 
         def fire(self):
             if self.dashes_remaining > 0:
-                renpy.sound.play("audio/zk_slash_sound.wav")
+                renpy.sound.play("audio/zk_slash_sound.wav", channel=1)
+                renpy.sound.set_volume(0.5, channel=1)
                 Beam(self.position.x + self.width / 2, self.position.y + self.height / 2, self.beam_group, self)
                 self.animate_fire = True
                 self.dashes_remaining -= 1
 
         def refill_dashes(self):
             self.dashes_remaining = self.dash_count
+
+        # player flashes when hit, and is invulnerable during the flash
+        def update_flash(self):
+            if self.is_flashing:
+                self.flash_timer += 1
+                if self.flash_timer >= self.flash_duration:
+                    self.is_flashing = False
+                    self.flash_timer = 0
+
+        def start_flash(self):
+            self.is_flashing = True
+            self.flash_timer = 0
 
         def reset(self):
             self.velocity = Vector(0, 0)
@@ -157,6 +178,15 @@ init -5 python:
 
             self.image = sprite_list[int(self.current_sprite_index)]
 
+        def render(self, render, st, at):
+            if self.is_flashing and self.flash_timer % 4 < 2:
+                r = renpy.render(
+                    Transform(self.image, matrixcolor=TintMatrix("#FFFFFF") * BrightnessMatrix(1.0)),
+                    self.width, self.height, st, at
+                )
+            else:
+                r = renpy.render(self.image, self.width, self.height, st, at)
+            render.blit(r, (int(self.position.x), int(self.position.y)))
 
     class Beam(GameSprite):
         VELOCITY = 20

@@ -4,6 +4,18 @@ import { PrismaClient } from "../src/generated/prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
+  // ─── CLEAN UP ──────────────────────────────────────────
+  // Delete in dependency order to avoid FK constraint issues
+  await prisma.dialogueLine.deleteMany();
+  await prisma.question.deleteMany();
+  await prisma.modifierPool.deleteMany();
+  await prisma.stageEnemy.deleteMany();
+  await prisma.stage.deleteMany();
+  await prisma.campaign.deleteMany();
+  await prisma.character.deleteMany();
+  await prisma.enemyTemplate.deleteMany();
+  await prisma.modifierDef.deleteMany();
+
   // ─── TILE TYPES ──────────────────────────────────────────
   const tileTypes = [
     { code: 0, name: "Empty", color: "#1a1a2e" },
@@ -43,12 +55,12 @@ async function main() {
 
   // ─── CHARACTERS ──────────────────────────────────────────
   const characters = [
-    { name: "The Simulation", color: "#00FF00", role: "narrator" },
-    { name: "Narrator", color: "#AAAAAA", role: "narrator" },
-    { name: "Cyrus the Great", color: "#FFD700", role: "teacher" },
-    { name: "Zoroastrian Priest", color: "#FF8C00", role: "teacher" },
-    { name: "Persian Scholar", color: "#87CEEB", role: "teacher" },
-    { name: "Freed Captive", color: "#DDA0DD", role: "teacher" },
+    { name: "The Simulation", color: "#00FF00", role: "antagonist", portrait: "images/simulation/simulation neutral1.jpg" },
+    { name: "Narrator", color: "#AAAAAA", role: "narrator", portrait: "images/narrator/narrator mouth1.jpg" },
+    { name: "Cyrus the Great", color: "#FFD700", role: "teacher", portrait: "images/cyrus/cyrus neutral2.jpg" },
+    { name: "Zoroastrian Priest", color: "#FF8C00", role: "teacher", portrait: "images/priest/priest smile4.jpg" },
+    { name: "Persian Scholar", color: "#87CEEB", role: "teacher", portrait: "images/scholar/scholar smile7.jpg" },
+    { name: "Freed Captive", color: "#DDA0DD", role: "teacher", portrait: "images/captive/captive neutral3.jpg" },
   ];
   const charMap: Record<string, number> = {};
   for (const c of characters) {
@@ -230,6 +242,9 @@ async function main() {
       spawnInterval: 6,
       background: "images/backgrounds/stage_1_bg.png",
       requiresStomp: false,
+      dialogueMusic: "audio/story1_background_music.mp3",
+      combatMusic: "audio/zk_background_music.wav",
+      quizMusic: "audio/kahoot_quiz_music.mp3",
       tileMap: STAGE_1_MAP,
     },
     {
@@ -240,6 +255,9 @@ async function main() {
       spawnInterval: 5,
       background: "images/backgrounds/stage_2_bg.png",
       requiresStomp: false,
+      dialogueMusic: "audio/story2_background_music.mp3",
+      combatMusic: "audio/zk_background_music.wav",
+      quizMusic: "audio/kahoot_quiz_music.mp3",
       tileMap: STAGE_2_MAP,
     },
     {
@@ -250,6 +268,9 @@ async function main() {
       spawnInterval: 4,
       background: "images/backgrounds/stage_3_bg.png",
       requiresStomp: true,
+      dialogueMusic: "audio/story3_background_music.mp3",
+      combatMusic: "audio/zk_background_music.wav",
+      quizMusic: "audio/kahoot_quiz_music.mp3",
       tileMap: STAGE_3_MAP,
     },
     {
@@ -260,6 +281,9 @@ async function main() {
       spawnInterval: 3,
       background: "images/backgrounds/stage_4_bg.png",
       requiresStomp: true,
+      dialogueMusic: "audio/story4_background_music.mp3",
+      combatMusic: "audio/zk_background_music.wav",
+      quizMusic: "audio/kahoot_quiz_music.mp3",
       tileMap: STAGE_4_MAP,
     },
   ];
@@ -298,76 +322,78 @@ async function main() {
   }
 
   // ─── DIALOGUE LINES ──────────────────────────────────────
-  const dialogues: { stageIdx: number; speaker: string; text: string }[] = [
-    // Stage 1
-    { stageIdx: 0, speaker: "The Simulation", text: "System initialized. Subject detected." },
-    { stageIdx: 0, speaker: "The Simulation", text: "You have been placed inside a historical simulation. Your purpose: to learn from the past." },
-    { stageIdx: 0, speaker: "The Simulation", text: "Humanity has repeated its mistakes for millennia. Wars. Oppression. Collapse. I have watched it all." },
-    { stageIdx: 0, speaker: "The Simulation", text: "Prove to me that you can understand what went wrong... and what went right. Only then will you be freed." },
-    { stageIdx: 0, speaker: "The Simulation", text: "We begin at the very start. The Iranian Plateau. Over five thousand years ago." },
-    { stageIdx: 0, speaker: "Narrator", text: "The land between the Caspian Sea and the Persian Gulf was home to one of humanity's earliest civilizations." },
-    { stageIdx: 0, speaker: "Persian Scholar", text: "Welcome, traveler. You stand on ancient ground." },
-    { stageIdx: 0, speaker: "Persian Scholar", text: "Around 3200 BC, the Elamites built their civilization here, centered around the great city of Susa." },
-    { stageIdx: 0, speaker: "Persian Scholar", text: "They developed one of the world's earliest writing systems - Proto-Elamite script. Much of it remains a mystery to this day." },
-    { stageIdx: 0, speaker: "Persian Scholar", text: "For centuries, the Elamites traded with Mesopotamia, fought wars with Babylon, and built monuments that rivaled any in the ancient world." },
-    { stageIdx: 0, speaker: "Persian Scholar", text: "Then came the Medes, an Iranian people who settled in the western highlands." },
-    { stageIdx: 0, speaker: "Persian Scholar", text: "The Medes united the scattered Iranian tribes into a kingdom. They overthrew the mighty Assyrian Empire alongside the Babylonians in 612 BC." },
-    { stageIdx: 0, speaker: "Persian Scholar", text: "But the Medes would not hold power forever. A young prince from the Persian tribe of Anshan was about to change everything." },
-    { stageIdx: 0, speaker: "Persian Scholar", text: "His name was Cyrus." },
-    { stageIdx: 0, speaker: "The Simulation", text: "Enough history for now. Let's see if you can survive what comes next." },
-    { stageIdx: 0, speaker: "The Simulation", text: "The echoes of ancient conflicts have taken form. Defeat them." },
-    // Stage 2
-    { stageIdx: 1, speaker: "The Simulation", text: "You survived. Interesting. But survival means nothing without understanding." },
-    { stageIdx: 1, speaker: "The Simulation", text: "Now we enter the era of Cyrus II of Persia. The man who would become 'the Great.'" },
-    { stageIdx: 1, speaker: "Cyrus the Great", text: "I was born into the royal house of Anshan, a vassal of the Median Empire." },
-    { stageIdx: 1, speaker: "Cyrus the Great", text: "My grandfather Astyages ruled the Medes. But his rule was cruel, and his people suffered." },
-    { stageIdx: 1, speaker: "Cyrus the Great", text: "In 553 BC, I raised a rebellion. Not out of ambition alone, but because I believed in something greater." },
-    { stageIdx: 1, speaker: "Cyrus the Great", text: "A ruler should serve his people, not enslave them." },
-    { stageIdx: 1, speaker: "Cyrus the Great", text: "After three years of war, the Median army turned against Astyages and joined my cause. The Medes and Persians were united under one banner." },
-    { stageIdx: 1, speaker: "Cyrus the Great", text: "But this was only the beginning. To the west lay the Kingdom of Lydia, ruled by the wealthy King Croesus." },
-    { stageIdx: 1, speaker: "Persian Scholar", text: "Croesus was famous throughout the ancient world. Lydia had invented coined money. His wealth was legendary." },
-    { stageIdx: 1, speaker: "Persian Scholar", text: "When Croesus heard of Cyrus's rise, he consulted the Oracle at Delphi, who told him: 'If you cross the river, a great empire will be destroyed.'" },
-    { stageIdx: 1, speaker: "Persian Scholar", text: "Croesus attacked. The great empire that was destroyed was his own." },
-    { stageIdx: 1, speaker: "Cyrus the Great", text: "I conquered Lydia in 547 BC. But unlike other conquerors, I did not destroy its people or culture." },
-    { stageIdx: 1, speaker: "Cyrus the Great", text: "I allowed the Lydians to keep their customs. I learned that empires built on respect last longer than those built on fear." },
-    { stageIdx: 1, speaker: "Cyrus the Great", text: "I organized my growing empire into satrapies - provinces, each with a governor who understood local needs." },
-    { stageIdx: 1, speaker: "The Simulation", text: "Compassion and strategy. An unusual combination in conquerors. But your next trial grows harder." },
-    // Stage 3
-    { stageIdx: 2, speaker: "The Simulation", text: "You continue to impress. Or perhaps you are merely lucky." },
-    { stageIdx: 2, speaker: "The Simulation", text: "Now we approach the moment that defined Cyrus's legacy forever: the fall of Babylon." },
-    { stageIdx: 2, speaker: "Narrator", text: "The year is 539 BC. Babylon, the greatest city in the world, stands behind walls said to be impenetrable." },
-    { stageIdx: 2, speaker: "Narrator", text: "Inside those walls, an entire people languish in exile." },
-    { stageIdx: 2, speaker: "Freed Captive", text: "We have been prisoners here for almost fifty years. Since Nebuchadnezzar destroyed Jerusalem and our temple in 586 BC." },
-    { stageIdx: 2, speaker: "Freed Captive", text: "The Babylonian Captivity... we were torn from our homeland, our sacred places reduced to rubble." },
-    { stageIdx: 2, speaker: "Freed Captive", text: "We have heard rumors of a Persian king. They say he is different from other conquerors." },
-    { stageIdx: 2, speaker: "Cyrus the Great", text: "Babylon's walls were legendary. A direct siege could take years and cost thousands of lives on both sides." },
-    { stageIdx: 2, speaker: "Cyrus the Great", text: "So I chose a different path. We diverted the waters of the Euphrates River, lowering the water level where it passed under the city walls." },
-    { stageIdx: 2, speaker: "Cyrus the Great", text: "My soldiers entered through the riverbed. Babylon fell with remarkably little bloodshed." },
-    { stageIdx: 2, speaker: "Cyrus the Great", text: "When I entered the city, I did not come as a destroyer. I came as a liberator." },
-    { stageIdx: 2, speaker: "Cyrus the Great", text: "I freed the Jewish people from their captivity. I told them: go home. Rebuild your temple. Practice your faith." },
-    { stageIdx: 2, speaker: "Freed Captive", text: "When Cyrus made his declaration, we wept. After nearly fifty years, we could return to Jerusalem." },
-    { stageIdx: 2, speaker: "Freed Captive", text: "He did not force us to worship his gods. He did not demand we abandon who we were." },
-    { stageIdx: 2, speaker: "Zoroastrian Priest", text: "In our Zoroastrian faith, we believe in Asha - truth and righteousness. Cyrus embodied these principles." },
-    { stageIdx: 2, speaker: "Zoroastrian Priest", text: "He showed that power wielded justly is the greatest power of all." },
-    { stageIdx: 2, speaker: "The Simulation", text: "Liberation over destruction. Justice over domination. Perhaps there is hope for your species yet." },
-    // Stage 4
-    { stageIdx: 3, speaker: "The Simulation", text: "This is your final trial. The culmination of everything you have learned." },
-    { stageIdx: 3, speaker: "The Simulation", text: "What makes a civilization endure? What separates greatness from mere power?" },
-    { stageIdx: 3, speaker: "Cyrus the Great", text: "After taking Babylon, I had a proclamation inscribed on a clay cylinder in Akkadian cuneiform." },
-    { stageIdx: 3, speaker: "Cyrus the Great", text: "This cylinder declared principles that would echo through the ages." },
-    { stageIdx: 3, speaker: "Persian Scholar", text: "The Cyrus Cylinder proclaimed religious freedom for all peoples. It abolished forced labor." },
-    { stageIdx: 3, speaker: "Persian Scholar", text: "It declared that peoples displaced by the Babylonians could return to their homelands." },
-    { stageIdx: 3, speaker: "Persian Scholar", text: "Many scholars consider it one of the earliest declarations of human rights in history." },
-    { stageIdx: 3, speaker: "Cyrus the Great", text: "I governed through the Royal Road - a network spanning over 1,600 miles with relay stations." },
-    { stageIdx: 3, speaker: "Cyrus the Great", text: "A message could travel the entire length in seven days. This connected my people, from Lydia to the borders of India." },
-    { stageIdx: 3, speaker: "Cyrus the Great", text: "Each satrapy maintained its own customs, languages, and religions. Unity did not require uniformity." },
-    { stageIdx: 3, speaker: "Zoroastrian Priest", text: "In Zoroastrian belief, Ahriman represents the destructive spirit - chaos, lies, and oppression." },
-    { stageIdx: 3, speaker: "Zoroastrian Priest", text: "Everything Cyrus stood against. Every chain he broke, every temple he restored, was a victory against Ahriman." },
-    { stageIdx: 3, speaker: "Zoroastrian Priest", text: "Now Ahriman himself has emerged, seeking to undo everything Cyrus built." },
-    { stageIdx: 3, speaker: "Zoroastrian Priest", text: "The chains of the oppressed, the ruins of temples, the silence of displaced peoples - this is Ahriman's vision for the world." },
-    { stageIdx: 3, speaker: "The Simulation", text: "This is your final test, traveler. Ahriman embodies every failure of civilization: oppression, intolerance, injustice." },
-    { stageIdx: 3, speaker: "The Simulation", text: "Defeat the spirit of destruction, and prove that humanity can learn from its own history." },
-    { stageIdx: 3, speaker: "The Simulation", text: "Fail... and the cycle of destruction continues." },
+  // Portrait paths mapped from the hardcoded dialogue_scripts.rpy show commands.
+  // Empty string means "keep the current portrait" (no change from previous line).
+  const dialogues: { stageIdx: number; speaker: string; text: string; portrait: string }[] = [
+    // ── Stage 1: Early Persia / Elamite Period ──
+    { stageIdx: 0, speaker: "The Simulation", text: "System initialized. Subject detected.", portrait: "" },
+    { stageIdx: 0, speaker: "The Simulation", text: "You have been placed inside a historical simulation. Your purpose: to learn from the past.", portrait: "images/simulation/simulation neutral1.jpg" },
+    { stageIdx: 0, speaker: "The Simulation", text: "Humanity has repeated its mistakes for millennia. Wars. Oppression. Collapse. I have watched it all.", portrait: "images/simulation/simulation angry1.jpg" },
+    { stageIdx: 0, speaker: "The Simulation", text: "Prove to me that you can understand what went wrong... and what went right. Only then will you be freed.", portrait: "" },
+    { stageIdx: 0, speaker: "The Simulation", text: "We begin at the very start. The Iranian Plateau. Over five thousand years ago.", portrait: "images/simulation/simulation neutral1.jpg" },
+    { stageIdx: 0, speaker: "Narrator", text: "The land between the Caspian Sea and the Persian Gulf was home to one of humanity's earliest civilizations.", portrait: "images/narrator/narrator mouth1.jpg" },
+    { stageIdx: 0, speaker: "Persian Scholar", text: "Welcome, traveler. You stand on ancient ground.", portrait: "images/scholar/scholar smile7.jpg" },
+    { stageIdx: 0, speaker: "Persian Scholar", text: "Around 3200 BC, the Elamites built their civilization here, centered around the great city of Susa.", portrait: "images/scholar/scholar smile6.jpg" },
+    { stageIdx: 0, speaker: "Persian Scholar", text: "They developed one of the world's earliest writing systems - Proto-Elamite script. Much of it remains a mystery to this day.", portrait: "" },
+    { stageIdx: 0, speaker: "Persian Scholar", text: "For centuries, the Elamites traded with Mesopotamia, fought wars with Babylon, and built monuments that rivaled any in the ancient world.", portrait: "images/scholar/scholar smile7.jpg" },
+    { stageIdx: 0, speaker: "Persian Scholar", text: "Then came the Medes, an Iranian people who settled in the western highlands.", portrait: "" },
+    { stageIdx: 0, speaker: "Persian Scholar", text: "The Medes united the scattered Iranian tribes into a kingdom. They overthrew the mighty Assyrian Empire alongside the Babylonians in 612 BC.", portrait: "images/scholar/scholar point1.jpg" },
+    { stageIdx: 0, speaker: "Persian Scholar", text: "But the Medes would not hold power forever. A young prince from the Persian tribe of Anshan was about to change everything.", portrait: "" },
+    { stageIdx: 0, speaker: "Persian Scholar", text: "His name was Cyrus.", portrait: "" },
+    { stageIdx: 0, speaker: "The Simulation", text: "Enough history for now. Let's see if you can survive what comes next.", portrait: "images/simulation/simulation neutral1.jpg" },
+    { stageIdx: 0, speaker: "The Simulation", text: "The echoes of ancient conflicts have taken form. Defeat them.", portrait: "images/simulation/simulation angry1.jpg" },
+    // ── Stage 2: Rise of Cyrus the Great ──
+    { stageIdx: 1, speaker: "The Simulation", text: "You survived. Interesting. But survival means nothing without understanding.", portrait: "images/simulation/simulation neutral1.jpg" },
+    { stageIdx: 1, speaker: "The Simulation", text: "Now we enter the era of Cyrus II of Persia. The man who would become 'the Great.'", portrait: "" },
+    { stageIdx: 1, speaker: "Cyrus the Great", text: "I was born into the royal house of Anshan, a vassal of the Median Empire.", portrait: "images/cyrus/cyrus proud2.jpg" },
+    { stageIdx: 1, speaker: "Cyrus the Great", text: "My grandfather Astyages ruled the Medes. But his rule was cruel, and his people suffered.", portrait: "images/cyrus/cyrus neutral2.jpg" },
+    { stageIdx: 1, speaker: "Cyrus the Great", text: "In 553 BC, I raised a rebellion. Not out of ambition alone, but because I believed in something greater.", portrait: "" },
+    { stageIdx: 1, speaker: "Cyrus the Great", text: "A ruler should serve his people, not enslave them.", portrait: "images/cyrus/cyrus angry2.jpg" },
+    { stageIdx: 1, speaker: "Cyrus the Great", text: "After three years of war, the Median army turned against Astyages and joined my cause. The Medes and Persians were united under one banner.", portrait: "images/cyrus/cyrus point3.jpg" },
+    { stageIdx: 1, speaker: "Cyrus the Great", text: "But this was only the beginning. To the west lay the Kingdom of Lydia, ruled by the wealthy King Croesus.", portrait: "images/cyrus/cyrus neutral2.jpg" },
+    { stageIdx: 1, speaker: "Persian Scholar", text: "Croesus was famous throughout the ancient world. Lydia had invented coined money. His wealth was legendary.", portrait: "images/scholar/scholar point1.jpg" },
+    { stageIdx: 1, speaker: "Persian Scholar", text: "When Croesus heard of Cyrus's rise, he consulted the Oracle at Delphi, who told him: 'If you cross the river, a great empire will be destroyed.'", portrait: "images/scholar/scholar smile6.jpg" },
+    { stageIdx: 1, speaker: "Persian Scholar", text: "Croesus attacked. The great empire that was destroyed was his own.", portrait: "images/scholar/scholar smile7.jpg" },
+    { stageIdx: 1, speaker: "Cyrus the Great", text: "I conquered Lydia in 547 BC. But unlike other conquerors, I did not destroy its people or culture.", portrait: "images/cyrus/cyrus point3.jpg" },
+    { stageIdx: 1, speaker: "Cyrus the Great", text: "I allowed the Lydians to keep their customs. I learned that empires built on respect last longer than those built on fear.", portrait: "images/cyrus/cyrus neutral2.jpg" },
+    { stageIdx: 1, speaker: "Cyrus the Great", text: "I organized my growing empire into satrapies - provinces, each with a governor who understood local needs.", portrait: "images/cyrus/cyrus proud2.jpg" },
+    { stageIdx: 1, speaker: "The Simulation", text: "Compassion and strategy. An unusual combination in conquerors. But your next trial grows harder.", portrait: "images/simulation/simulation angry1.jpg" },
+    // ── Stage 3: Fall of Babylon ──
+    { stageIdx: 2, speaker: "The Simulation", text: "You continue to impress. Or perhaps you are merely lucky.", portrait: "images/simulation/simulation neutral1.jpg" },
+    { stageIdx: 2, speaker: "The Simulation", text: "Now we approach the moment that defined Cyrus's legacy forever: the fall of Babylon.", portrait: "" },
+    { stageIdx: 2, speaker: "Narrator", text: "The year is 539 BC. Babylon, the greatest city in the world, stands behind walls said to be impenetrable.", portrait: "images/narrator/narrator mouth1.jpg" },
+    { stageIdx: 2, speaker: "Narrator", text: "Inside those walls, an entire people languish in exile.", portrait: "" },
+    { stageIdx: 2, speaker: "Freed Captive", text: "We have been prisoners here for almost fifty years. Since Nebuchadnezzar destroyed Jerusalem and our temple in 586 BC.", portrait: "images/captive/captive sad.jpg" },
+    { stageIdx: 2, speaker: "Freed Captive", text: "The Babylonian Captivity... we were torn from our homeland, our sacred places reduced to rubble.", portrait: "" },
+    { stageIdx: 2, speaker: "Freed Captive", text: "We have heard rumors of a Persian king. They say he is different from other conquerors.", portrait: "images/captive/captive neutral3.jpg" },
+    { stageIdx: 2, speaker: "Cyrus the Great", text: "Babylon's walls were legendary. A direct siege could take years and cost thousands of lives on both sides.", portrait: "images/cyrus/cyrus neutral2.jpg" },
+    { stageIdx: 2, speaker: "Cyrus the Great", text: "So I chose a different path. We diverted the waters of the Euphrates River, lowering the water level where it passed under the city walls.", portrait: "images/cyrus/cyrus point3.jpg" },
+    { stageIdx: 2, speaker: "Cyrus the Great", text: "My soldiers entered through the riverbed. Babylon fell with remarkably little bloodshed.", portrait: "" },
+    { stageIdx: 2, speaker: "Cyrus the Great", text: "When I entered the city, I did not come as a destroyer. I came as a liberator.", portrait: "images/cyrus/cyrus neutral2.jpg" },
+    { stageIdx: 2, speaker: "Cyrus the Great", text: "I freed the Jewish people from their captivity. I told them: go home. Rebuild your temple. Practice your faith.", portrait: "images/cyrus/cyrus proud2.jpg" },
+    { stageIdx: 2, speaker: "Freed Captive", text: "When Cyrus made his declaration, we wept. After nearly fifty years, we could return to Jerusalem.", portrait: "images/captive/captive sad.jpg" },
+    { stageIdx: 2, speaker: "Freed Captive", text: "He did not force us to worship his gods. He did not demand we abandon who we were.", portrait: "images/captive/captive neutral3.jpg" },
+    { stageIdx: 2, speaker: "Zoroastrian Priest", text: "In our Zoroastrian faith, we believe in Asha - truth and righteousness. Cyrus embodied these principles.", portrait: "images/priest/priest smile4.jpg" },
+    { stageIdx: 2, speaker: "Zoroastrian Priest", text: "He showed that power wielded justly is the greatest power of all.", portrait: "" },
+    { stageIdx: 2, speaker: "The Simulation", text: "Liberation over destruction. Justice over domination. Perhaps there is hope for your species yet.", portrait: "images/simulation/simulation neutral1.jpg" },
+    // ── Stage 4: The Cyrus Cylinder & Legacy ──
+    { stageIdx: 3, speaker: "The Simulation", text: "This is your final trial. The culmination of everything you have learned.", portrait: "images/simulation/simulation neutral1.jpg" },
+    { stageIdx: 3, speaker: "The Simulation", text: "What makes a civilization endure? What separates greatness from mere power?", portrait: "" },
+    { stageIdx: 3, speaker: "Cyrus the Great", text: "After taking Babylon, I had a proclamation inscribed on a clay cylinder in Akkadian cuneiform.", portrait: "images/cyrus/cyrus neutral2.jpg" },
+    { stageIdx: 3, speaker: "Cyrus the Great", text: "This cylinder declared principles that would echo through the ages.", portrait: "images/cyrus/cyrus point3.jpg" },
+    { stageIdx: 3, speaker: "Persian Scholar", text: "The Cyrus Cylinder proclaimed religious freedom for all peoples. It abolished forced labor.", portrait: "images/scholar/scholar smile6.jpg" },
+    { stageIdx: 3, speaker: "Persian Scholar", text: "It declared that peoples displaced by the Babylonians could return to their homelands.", portrait: "" },
+    { stageIdx: 3, speaker: "Persian Scholar", text: "Many scholars consider it one of the earliest declarations of human rights in history.", portrait: "images/scholar/scholar point1.jpg" },
+    { stageIdx: 3, speaker: "Cyrus the Great", text: "I governed through the Royal Road - a network spanning over 1,600 miles with relay stations.", portrait: "images/cyrus/cyrus neutral2.jpg" },
+    { stageIdx: 3, speaker: "Cyrus the Great", text: "A message could travel the entire length in seven days. This connected my people, from Lydia to the borders of India.", portrait: "images/cyrus/cyrus point3.jpg" },
+    { stageIdx: 3, speaker: "Cyrus the Great", text: "Each satrapy maintained its own customs, languages, and religions. Unity did not require uniformity.", portrait: "images/cyrus/cyrus neutral2.jpg" },
+    { stageIdx: 3, speaker: "Zoroastrian Priest", text: "In Zoroastrian belief, Ahriman represents the destructive spirit - chaos, lies, and oppression.", portrait: "images/priest/priest smile4.jpg" },
+    { stageIdx: 3, speaker: "Zoroastrian Priest", text: "Everything Cyrus stood against. Every chain he broke, every temple he restored, was a victory against Ahriman.", portrait: "" },
+    { stageIdx: 3, speaker: "Zoroastrian Priest", text: "Now Ahriman himself has emerged, seeking to undo everything Cyrus built.", portrait: "" },
+    { stageIdx: 3, speaker: "Zoroastrian Priest", text: "The chains of the oppressed, the ruins of temples, the silence of displaced peoples - this is Ahriman's vision for the world.", portrait: "" },
+    { stageIdx: 3, speaker: "The Simulation", text: "This is your final test, traveler. Ahriman embodies every failure of civilization: oppression, intolerance, injustice.", portrait: "images/simulation/simulation neutral1.jpg" },
+    { stageIdx: 3, speaker: "The Simulation", text: "Defeat the spirit of destruction, and prove that humanity can learn from its own history.", portrait: "" },
+    { stageIdx: 3, speaker: "The Simulation", text: "Fail... and the cycle of destruction continues.", portrait: "images/simulation/simulation angry1.jpg" },
   ];
 
   for (let i = 0; i < dialogues.length; i++) {
@@ -377,6 +403,7 @@ async function main() {
         stageId: stageRecords[d.stageIdx].id,
         characterId: charMap[d.speaker],
         text: d.text,
+        portrait: d.portrait,
         sortOrder: i,
       },
     });

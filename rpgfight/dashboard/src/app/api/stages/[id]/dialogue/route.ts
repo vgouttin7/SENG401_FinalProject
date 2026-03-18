@@ -15,7 +15,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const { id } = await params;
   const body = await req.json();
   const line = await prisma.dialogueLine.create({
-    data: { stageId: parseInt(id), characterId: body.characterId, text: body.text, sortOrder: body.sortOrder ?? 0 },
+    data: { stageId: parseInt(id), characterId: body.characterId, text: body.text, portrait: body.portrait ?? "", sortOrder: body.sortOrder ?? 0 },
     include: { character: true },
   });
   return NextResponse.json(line, { status: 201 });

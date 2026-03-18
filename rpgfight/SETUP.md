@@ -11,7 +11,7 @@
 ## 1. Clone the Repository
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/vgouttin7/SENG401_FinalProject
 cd SENG401_FinalProject/rpgfight
 ```
 

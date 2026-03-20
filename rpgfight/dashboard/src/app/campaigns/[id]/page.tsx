@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import ResetDefaultButton from "@/components/ResetDefaultButton";
+import CampaignVictorySection from "@/components/CampaignVictorySection";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +17,10 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
           questions: { select: { id: true } },
           stageEnemies: { include: { enemyTemplate: true } },
         },
+      },
+      victoryLines: {
+        orderBy: { sortOrder: "asc" },
+        include: { character: true },
       },
     },
   });
@@ -35,7 +39,6 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
           <p className="text-gray-500 mt-1">{campaign.description}</p>
         </div>
         <div className="flex gap-2">
-          <ResetDefaultButton />
           <a
             href={`/api/export/${campaign.id}`}
             target="_blank"
@@ -104,6 +107,13 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
           ))}
         </div>
       )}
+
+      {/* Victory / Ending Section */}
+      <CampaignVictorySection
+        campaignId={campaign.id}
+        victoryMusic={campaign.victoryMusic}
+        victoryLines={campaign.victoryLines}
+      />
     </div>
   );
 }

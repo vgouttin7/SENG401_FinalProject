@@ -11,6 +11,8 @@ interface Props {
     background: string;
     requiresStomp: boolean;
     reviveSeconds: number;
+    completionMessage: string;
+    retryMessage: string;
     dialogueMusic: string;
     combatMusic: string;
     quizMusic: string;
@@ -26,6 +28,8 @@ export default function StageSettingsEditor({ stage, onSave }: Props) {
     background: stage.background,
     requiresStomp: stage.requiresStomp,
     reviveSeconds: stage.reviveSeconds ?? 0,
+    completionMessage: stage.completionMessage ?? "",
+    retryMessage: stage.retryMessage ?? "",
     dialogueMusic: stage.dialogueMusic ?? "",
     combatMusic: stage.combatMusic ?? "",
     quizMusic: stage.quizMusic ?? "",
@@ -86,6 +90,28 @@ export default function StageSettingsEditor({ stage, onSave }: Props) {
           onChange={(e) => setForm({ ...form, background: e.target.value })}
           className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-gray-100 focus:border-amber-500 focus:outline-none"
         />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-400 mb-1">Completion Message</label>
+        <input
+          type="text"
+          value={form.completionMessage}
+          onChange={(e) => setForm({ ...form, completionMessage: e.target.value })}
+          placeholder="e.g. You survived the Elamite Period!"
+          className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-gray-100 focus:border-amber-500 focus:outline-none"
+        />
+        <p className="text-xs text-gray-600 mt-1">Shown after winning combat. Leave blank for default.</p>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-400 mb-1">Retry Message</label>
+        <input
+          type="text"
+          value={form.retryMessage}
+          onChange={(e) => setForm({ ...form, retryMessage: e.target.value })}
+          placeholder="e.g. You have fallen. But history gives second chances..."
+          className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-gray-100 focus:border-amber-500 focus:outline-none"
+        />
+        <p className="text-xs text-gray-600 mt-1">Shown after losing combat. Leave blank for default.</p>
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-400 mb-1">Dialogue Music Path</label>

@@ -63,137 +63,8 @@ init -2 python:
             self.correct_index = correct_index
             self.explanation = explanation
 
-    # Question bank for each stage
-    STAGE_QUESTIONS = {
-        1: [
-            Question(
-                "What was the earliest known civilization on the Iranian plateau?",
-                ["The Persians", "The Elamites", "The Babylonians", "The Assyrians"],
-                1,
-                "The Elamites established one of the earliest civilizations on the Iranian plateau around 3200 BC, predating the Persian Empire by millennia."
-            ),
-            Question(
-                "What region did the Medes originally inhabit?",
-                ["Southern Iran", "Western Iran / Media", "Eastern Iran", "The Persian Gulf coast"],
-                1,
-                "The Medes inhabited the region of Media in western Iran. They formed one of the first Iranian empires before being united with the Persians under Cyrus."
-            ),
-            Question(
-                "Which ancient city served as the capital of Elam?",
-                ["Persepolis", "Babylon", "Susa", "Athens"],
-                2,
-                "Susa was the capital of the Elamite civilization and later became one of the capitals of the Achaemenid Persian Empire."
-            ),
-            Question(
-                "The Iranian plateau is located between which two bodies of water?",
-                ["Mediterranean and Red Sea", "Caspian Sea and Persian Gulf", "Black Sea and Arabian Sea", "Dead Sea and Indian Ocean"],
-                1,
-                "The Iranian plateau sits between the Caspian Sea to the north and the Persian Gulf to the south, a strategic crossroads of ancient trade routes."
-            ),
-            Question(
-                "What type of writing system did the Elamites develop?",
-                ["Hieroglyphics", "Proto-Elamite script", "Cuneiform only", "The Latin alphabet"],
-                1,
-                "The Elamites developed Proto-Elamite script around 3100 BC, one of the earliest writing systems in the world, which remains largely undeciphered."
-            ),
-        ],
-        2: [
-            Question(
-                "Who was the founder of the Achaemenid Persian Empire?",
-                ["Darius the Great", "Xerxes I", "Cyrus the Great", "Cambyses II"],
-                2,
-                "Cyrus II (Cyrus the Great) founded the Achaemenid Empire around 550 BC by uniting the Medes and Persians."
-            ),
-            Question(
-                "Which kingdom did Cyrus defeat first to begin his empire?",
-                ["Babylon", "Egypt", "The Median Empire", "Greece"],
-                2,
-                "Cyrus first revolted against and defeated Astyages, king of the Medes, in 550 BC, uniting the Persian and Median peoples."
-            ),
-            Question(
-                "What was the Kingdom of Lydia famous for?",
-                ["Great pyramids", "Inventing coined money", "Democracy", "Naval power"],
-                1,
-                "Lydia, ruled by the wealthy King Croesus, is credited with inventing the first coined money. Cyrus conquered Lydia around 547 BC."
-            ),
-            Question(
-                "How did Cyrus generally treat conquered peoples?",
-                ["Enslaved them all", "Forced conversion to his religion", "Allowed cultural and religious freedom", "Executed their leaders"],
-                2,
-                "Cyrus was known for his tolerance. He allowed conquered peoples to keep their customs, religions, and often their local leaders."
-            ),
-            Question(
-                "What system of government did Cyrus use to manage his vast empire?",
-                ["Direct rule from the capital", "Satrapies (provincial governors)", "City-states", "Military dictatorships"],
-                1,
-                "Cyrus organized his empire into satrapies, each governed by a satrap (governor), allowing local autonomy while maintaining central authority."
-            ),
-        ],
-        3: [
-            Question(
-                "In what year did Cyrus conquer Babylon?",
-                ["586 BC", "550 BC", "539 BC", "525 BC"],
-                2,
-                "Cyrus conquered Babylon in 539 BC, reportedly entering the city with minimal resistance after diverting the Euphrates River."
-            ),
-            Question(
-                "Which people did Cyrus free from the Babylonian Captivity?",
-                ["The Egyptians", "The Greeks", "The Israelites", "The Lydians"],
-                2,
-                "Cyrus freed the Jewish people who had been held in Babylon since Nebuchadnezzar's conquest of Jerusalem in 586 BC, allowing them to return home and rebuild their temple."
-            ),
-            Question(
-                "What was the Babylonian Captivity?",
-                ["A trade embargo on Babylon", "The exile of Jews in Babylon after Jerusalem's destruction", "A military siege of Babylon", "The imprisonment of Babylonian kings"],
-                1,
-                "The Babylonian Captivity was the period when the Jewish people were exiled in Babylon after King Nebuchadnezzar II destroyed Jerusalem and its temple in 586 BC."
-            ),
-            Question(
-                "How did Cyrus reportedly enter Babylon?",
-                ["Through a brutal siege lasting years", "By diverting the Euphrates and entering with little bloodshed", "By negotiating a trade deal", "By tunneling under the walls"],
-                1,
-                "According to ancient accounts, Cyrus diverted the Euphrates River to lower water levels, allowing his troops to enter through the riverbed with minimal fighting."
-            ),
-            Question(
-                "What principle made Cyrus's conquest of Babylon notable compared to other ancient conquests?",
-                ["He destroyed all temples", "He imposed heavy taxes immediately", "He showed religious tolerance and freed enslaved peoples", "He forced everyone to speak Persian"],
-                2,
-                "Unlike most ancient conquerors, Cyrus respected local religions, freed enslaved populations, and allowed people to maintain their cultural practices."
-            ),
-        ],
-        4: [
-            Question(
-                "What is the Cyrus Cylinder?",
-                ["A weapon used in battle", "An ancient clay document declaring human rights principles", "A mathematical tool", "A type of Persian architecture"],
-                1,
-                "The Cyrus Cylinder is a clay cylinder inscribed in Babylonian cuneiform, often considered one of the earliest declarations of human rights."
-            ),
-            Question(
-                "What did the Cyrus Cylinder declare about forced labor?",
-                ["It was acceptable for prisoners", "It was abolished", "It was required for building projects", "It was only for foreigners"],
-                1,
-                "The Cyrus Cylinder declared the abolition of forced labor, a revolutionary stance for the ancient world."
-            ),
-            Question(
-                "What communication system did the Persian Empire use across its vast territory?",
-                ["Smoke signals", "The Royal Road postal system", "Carrier pigeons only", "Drums"],
-                1,
-                "The Royal Road stretched over 1,600 miles with relay stations. Messages could travel the entire length in about 7 days, an ancient postal service."
-            ),
-            Question(
-                "What Zoroastrian concept does Ahriman represent?",
-                ["Truth and justice", "Chaos, destruction, and oppression", "Wisdom and knowledge", "Creation and light"],
-                1,
-                "In Zoroastrianism, Ahriman (Angra Mainyu) is the destructive spirit, the embodiment of chaos, lies, and oppression, opposed to Ahura Mazda, the spirit of truth."
-            ),
-            Question(
-                "Why is Cyrus the Great's legacy important for SDG 16 (Peace, Justice & Strong Institutions)?",
-                ["He built the largest army", "He established principles of religious freedom, tolerance, and just governance", "He conquered the most territory", "He invented democracy"],
-                1,
-                "Cyrus demonstrated that empires could be governed through tolerance, justice, and respect for diverse peoples - principles that align with modern ideals of peace and strong institutions."
-            ),
-        ],
-    }
+    # Question bank — loaded from dashboard DB
+    STAGE_QUESTIONS = {}
 
 
 # Quiz screen
@@ -416,8 +287,6 @@ label run_quiz(stage_num):
     stop music
     if stage_num in _quiz_music:
         play music _quiz_music[stage_num] fadein 1.0 volume 0.1
-    else:
-        play music "audio/kahoot_quiz_music.mp3" fadein 1.0 volume 0.1
 
 
     while quiz_question_index < len(questions):

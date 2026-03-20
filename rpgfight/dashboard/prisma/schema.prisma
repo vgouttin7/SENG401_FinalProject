@@ -16,10 +16,12 @@ model Campaign {
   description String   @default("")
   sortOrder   Int      @default(0)
   isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  victoryMusic String   @default("") // music for the victory/ending screen
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  stages Stage[]
+  stages       Stage[]
+  victoryLines VictoryLine[]
 }
 
 model Stage {
@@ -34,6 +36,10 @@ model Stage {
   background    String @default("") // sprite path for background image
   requiresStomp  Boolean @default(false)
   reviveSeconds  Int     @default(0) // 0 = no revive; >0 = downed enemies revive after N seconds
+
+  // Messages
+  completionMessage String @default("") // shown after winning combat (e.g. "You survived the Elamite Period!")
+  retryMessage      String @default("") // shown after losing combat (e.g. "You have fallen...")
 
   // Audio settings
   dialogueMusic String @default("") // audio file path for dialogue background music
@@ -68,6 +74,22 @@ model Character {
   updatedAt DateTime @updatedAt
 
   dialogueLines DialogueLine[]
+  victoryLines  VictoryLine[]
+}
+
+// Victory dialogue lines shown after completing all stages in a campaign
+model VictoryLine {
+  id          Int    @id @default(autoincrement())
+  campaignId  Int
+  characterId Int
+  text        String
+  portrait    String @default("") // expression override per line
+  sortOrder   Int    @default(0)
+
+  campaign  Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  character Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId, sortOrder])
 }
 
 model DialogueLine {

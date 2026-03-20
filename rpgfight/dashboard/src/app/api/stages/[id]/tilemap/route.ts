@@ -11,6 +11,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const body = await req.json();
-  const stage = await prisma.stage.update({ where: { id: parseInt(id) }, data: { tileMap: body.tileMap } });
+  const tileMap = body.tileMap as number[][];
+
+  // Validate: tile map must contain a player spawn (tile 9)
+  const hasSpawn = tileMap.some((row: number[]) => row.includes(9));
+  if (!hasSpawn) {
+    return NextResponse.json(
+      { error: "Tile map must contain a player spawn point (tile 9)" },
+      { status: 400 }
+    );
+  }
+
+  const stage = await prisma.stage.update({ where: { id: parseInt(id) }, data: { tileMap } });
   return NextResponse.json(stage.tileMap);
 }

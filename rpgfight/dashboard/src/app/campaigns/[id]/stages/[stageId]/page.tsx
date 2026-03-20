@@ -21,6 +21,8 @@ interface StageData {
   background: string;
   requiresStomp: boolean;
   reviveSeconds: number;
+  completionMessage: string;
+  retryMessage: string;
   dialogueMusic: string;
   combatMusic: string;
   quizMusic: string;

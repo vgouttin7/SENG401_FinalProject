@@ -265,6 +265,34 @@ init -15 python:
 
         return dialogues
 
+    def build_stage_messages_from_json(data):
+        """Extract per-stage completion and retry messages from JSON."""
+        complete = {}
+        retry = {}
+        for stage_data in data.get("stages", []):
+            stage_num = stage_data["stageNum"]
+            cm = stage_data.get("completionMessage", "")
+            rm = stage_data.get("retryMessage", "")
+            if cm:
+                complete[stage_num] = cm
+            if rm:
+                retry[stage_num] = rm
+        return complete, retry
+
+    def build_victory_dialogue_from_json(data):
+        """Extract campaign victory dialogue and music from JSON."""
+        campaign = data.get("campaign", {})
+        victory_music = campaign.get("victoryMusic", "")
+        lines = []
+        for vl in campaign.get("victoryDialogue", []):
+            lines.append({
+                "speaker": vl["speaker"],
+                "color": vl.get("speakerColor", "#FFFFFF"),
+                "portrait": vl.get("portrait", ""),
+                "text": vl["text"],
+            })
+        return victory_music, lines
+
     def build_stage_music_from_json(data):
         """Extract per-stage dialogue music mapping from JSON."""
         music = {}

@@ -16,6 +16,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ campaig
           modifierPool: { include: { modifierDef: true } },
         },
       },
+      victoryLines: { orderBy: { sortOrder: "asc" }, include: { character: true } },
     },
   });
 
@@ -28,6 +29,13 @@ export async function GET(_req: Request, { params }: { params: Promise<{ campaig
     campaign: {
       name: campaign.name,
       description: campaign.description,
+      victoryMusic: campaign.victoryMusic,
+      victoryDialogue: campaign.victoryLines.map((vl) => ({
+        speaker: vl.character.name,
+        speakerColor: vl.character.color,
+        portrait: vl.portrait,
+        text: vl.text,
+      })),
     },
     playerConfig: playerConfig ?? {},
     tileTypes: tileTypes.map((t) => ({ code: t.code, name: t.name, sprite: t.sprite })),
@@ -39,6 +47,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ campaig
       background: stage.background,
       requiresStomp: stage.requiresStomp,
       reviveSeconds: stage.reviveSeconds,
+      completionMessage: stage.completionMessage,
+      retryMessage: stage.retryMessage,
       dialogueMusic: stage.dialogueMusic,
       combatMusic: stage.combatMusic,
       quizMusic: stage.quizMusic,

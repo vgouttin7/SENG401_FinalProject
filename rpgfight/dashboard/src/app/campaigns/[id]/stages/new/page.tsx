@@ -4,6 +4,23 @@ import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 
 const EMPTY_MAP = Array.from({ length: 18 }, (_, r) => {
+  if (r === 1) {
+    // Portals on row 1
+    const row = Array(32).fill(0);
+    row[0] = 7;  // green portal
+    row[30] = 8; // purple portal
+    return row;
+  }
+  if (r === 12) {
+    // Player spawn platform
+    const row = Array(32).fill(0);
+    for (let c = 0; c < 11; c++) row[c] = 4;      // left platform
+    row[10] = 5;
+    row[15] = 3; row[16] = 9; row[17] = 5;         // spawn point on small platform
+    row[20] = 3;
+    for (let c = 21; c < 32; c++) row[c] = 4;      // right platform
+    return row;
+  }
   if (r === 16) return Array(32).fill(2);
   if (r === 17) return Array(32).fill(1);
   return Array(32).fill(0);

@@ -303,14 +303,26 @@ init python:
         def add_enemy(self):
             if self.frame_count % 60 == 0:
                 if self.round_time > 0 and self.round_time % self.spawn_interval == 0:
-                    enemy_class = random.choice(self.stage_config.enemy_types)
+                    # Pick a random enemy type and its sprite folder
+                    enemy_idx = random.randint(0, len(self.stage_config.enemy_types) - 1)
+                    enemy_class = self.stage_config.enemy_types[enemy_idx]
                     min_spd, max_spd = self.stage_config.enemy_speed_range
+
+                    sprite_folder = ""
+                    if enemy_idx < len(self.stage_config.enemy_sprites):
+                        sprite_folder = self.stage_config.enemy_sprites[enemy_idx]
+
+                    scale = 1.0
+                    if enemy_idx < len(self.stage_config.enemy_scales):
+                        scale = self.stage_config.enemy_scales[enemy_idx]
+
                     enemy = enemy_class(
                         random.randint(100, self.WINDOW_WIDTH - 100), -100,
                         self.platform_tiles, self.portal_group,
-                        min_spd, max_spd
+                        min_spd, max_spd, sprite_folder, scale
                     )
                     enemy.hp = self.stage_config.enemy_hp
+                    enemy.revive_seconds = self.stage_config.revive_seconds
                     self.enemy_group.append(enemy)
 
         def kill_enemy(self, enemy):
@@ -431,7 +443,10 @@ screen combat_health_bar():
         yoffset -28
 
 screen combat_screen():
-    add combat_stage.stage_config.background xsize 1920 ysize 1080
+    if combat_stage.stage_config.background:
+        add combat_stage.stage_config.background xsize 1920 ysize 1080
+    else:
+        add Solid("#000000") xsize 1920 ysize 1080
     add combat_stage
 
     if not combat_stage.is_paused:

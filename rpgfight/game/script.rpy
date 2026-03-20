@@ -13,6 +13,8 @@ default _dynamic_stages = None
 default _dynamic_questions = None
 default _dynamic_dialogue = None
 default _total_stages = 4
+default _selected_campaign_id = None
+default _available_campaigns = None
 
 # Dynamic character for dialogue (when loaded from DB)
 default _dyn_char = None
@@ -65,8 +67,21 @@ label start:
     $ current_stage = 1
     $ game_score = 0
 
-    # Try to load config from dashboard API
-    $ _game_config = load_game_config()
+    # Fetch available campaigns and let the player choose
+    $ _available_campaigns = load_campaigns_list()
+
+    if _available_campaigns is not None and len(_available_campaigns) > 1:
+        # Multiple campaigns available — show selection screen
+        call screen campaign_select(_available_campaigns)
+        $ _selected_campaign_id = _return
+        $ _game_config = load_game_config(campaign_id=_selected_campaign_id)
+    elif _available_campaigns is not None and len(_available_campaigns) == 1:
+        # Only one campaign — load it directly by ID
+        $ _selected_campaign_id = _available_campaigns[0]["id"]
+        $ _game_config = load_game_config(campaign_id=_selected_campaign_id)
+    else:
+        # No campaign list available — fall back to default behavior
+        $ _game_config = load_game_config()
 
     if _game_config is not None:
         # Config loaded from API/cache — build dynamic data

@@ -20,6 +20,7 @@ interface StageData {
   spawnInterval: number;
   background: string;
   requiresStomp: boolean;
+  reviveSeconds: number;
   dialogueMusic: string;
   combatMusic: string;
   quizMusic: string;

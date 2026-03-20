@@ -1,24 +1,50 @@
 init -5 python:
 
+    # Default sprite folder (fallback when DB has no sprites set)
+    _DEFAULT_ENEMY_SPRITES = "images/sprites/knight_01"
+
     class Enemy(AnimatedSprite):
-        """Base enemy class. Uses zombie sprites as placeholder."""
+        """Base enemy class. Loads sprites from a folder path."""
 
         VERTICAL_ACCELERATION = 3
         RISE_TIME = 2
 
-        def __init__(self, x, y, platform_tiles, portal_group, min_speed, max_speed):
-            AnimatedSprite.__init__(self, 120, 120, x, y)
+        def __init__(self, x, y, platform_tiles, portal_group,
+                min_speed, max_speed, sprite_folder="", scale=1.0):
+            folder = sprite_folder if sprite_folder else _DEFAULT_ENEMY_SPRITES
+            folder = folder.rstrip("/")
 
-            # Placeholder: use zombie sprites until Persian art is ready
-            gender = random.randint(0, 1)
-            if gender == 0:
-                self.walk_right_sprites, self.walk_left_sprites = self.generate_mirrored_animation("images/zombie/boy/walk/Walk ({}).png", 1, 10)
-                self.die_right_sprites, self.die_left_sprites = self.generate_mirrored_animation("images/zombie/boy/dead/Dead ({}).png", 1, 10)
-                self.rise_right_sprites, self.rise_left_sprites = self.generate_mirrored_animation("images/zombie/boy/dead/Dead ({}).png", 10, 1, -1)
+            # Auto-detect actual sprite size from first walk frame
+            try:
+                first_frame = folder + "/walk_000.png"
+                pi = pygame.image.load(renpy.loader.transfn(first_frame))
+                actual_w, actual_h = pi.get_size()
+            except Exception:
+                actual_w, actual_h = 140, 120
+
+            # Apply scale modifier
+            scaled_w = int(actual_w * scale)
+            scaled_h = int(actual_h * scale)
+            AnimatedSprite.__init__(self, scaled_w, scaled_h, x, y)
+            self.sprite_scale = scale
+
+            walk_pattern = folder + "/walk_{:03d}.png"
+            die_pattern = folder + "/die_{:03d}.png"
+
+            if scale != 1.0:
+                self.walk_right_sprites, self.walk_left_sprites = (
+                    self._generate_scaled_mirrored(walk_pattern, 0, 9, scale))
+                self.die_right_sprites, self.die_left_sprites = (
+                    self._generate_scaled_mirrored(die_pattern, 0, 9, scale))
+                self.rise_right_sprites, self.rise_left_sprites = (
+                    self._generate_scaled_mirrored(die_pattern, 9, 0, scale, step=-1))
             else:
-                self.walk_right_sprites, self.walk_left_sprites = self.generate_mirrored_animation("images/zombie/girl/walk/Walk ({}).png", 1, 10)
-                self.die_right_sprites, self.die_left_sprites = self.generate_mirrored_animation("images/zombie/girl/dead/Dead ({}).png", 1, 10)
-                self.rise_right_sprites, self.rise_left_sprites = self.generate_mirrored_animation("images/zombie/girl/dead/Dead ({}).png", 10, 1, -1)
+                self.walk_right_sprites, self.walk_left_sprites = (
+                    self.generate_mirrored_animation(walk_pattern, 0, 9))
+                self.die_right_sprites, self.die_left_sprites = (
+                    self.generate_mirrored_animation(die_pattern, 0, 9))
+                self.rise_right_sprites, self.rise_left_sprites = (
+                    self.generate_mirrored_animation(die_pattern, 9, 0, -1))
 
             self.direction = random.choice([-1, 1])
             self.current_sprite_index = 0
@@ -34,13 +60,25 @@ init -5 python:
             self.animate_death = False
             self.animate_rise = False
 
-            self.velocity = Vector(self.direction * random.randint(min_speed, max_speed), 0)
+            self.velocity = Vector(
+                self.direction * random.randint(min_speed, max_speed), 0)
             self.acceleration = Vector(0, self.VERTICAL_ACCELERATION)
 
             self.hp = 1
             self.is_dead = False
             self.frames_dead = 0
             self.seconds_dead = 0
+            self.revive_seconds = 0  # 0 = no revive; set by combat stage
+
+        def _generate_scaled_mirrored(self, fname_pattern, start, end, scale, step=1):
+            right_sprites = []
+            left_sprites = []
+            for i in range(start, end + 1 if step > 0 else end - 1, step):
+                img = Image(fname_pattern.format(i))
+                scaled_r = Transform(img, zoom=scale)
+                right_sprites.append(scaled_r)
+                left_sprites.append(Transform(img, xzoom=-scale, yzoom=scale))
+            return (right_sprites, left_sprites)
 
         def update(self, max_width, max_height):
             self.move(max_width)
@@ -57,8 +95,8 @@ init -5 python:
                 self.velocity += self.acceleration
                 self.position += self.velocity + (0.5 * self.acceleration)
 
-                if self.position.x < 0:
-                    self.position.x = max_width
+                if self.position.x + self.width < 0:
+                    self.position.x = max_width - self.width
                 elif self.position.x > max_width:
                     self.position.x = 0
 
@@ -68,101 +106,52 @@ init -5 python:
                     self.position.y = platform.position.y - self.height + 5
                     self.velocity.y = 0
 
-            for portal in self.portal_group:
-                if portal.is_colliding(self):
-                    renpy.sound.play("audio/zk_portal_sound.wav")
-                    if self.position.x > max_width // 2:
-                        self.position.x = 150
-                    else:
-                        self.position.x = max_width - 150 - self.width
-                    if self.position.y > max_height // 2:
-                        self.position.y = 50
-                    else:
-                        self.position.y = max_height - 150 - self.height
-
         def check_animations(self):
             if self.animate_death:
                 if self.direction == 1:
                     self.animate(self.die_right_sprites, 0.15)
                 else:
                     self.animate(self.die_left_sprites, 0.15)
-            elif self.is_dead:
-                # Death animation finished — stay on last frame
+            elif self.animate_rise:
                 if self.direction == 1:
-                    self.image = self.die_right_sprites[-1]
+                    self.animate(self.rise_right_sprites, 0.15)
                 else:
-                    self.image = self.die_left_sprites[-1]
+                    self.animate(self.rise_left_sprites, 0.15)
+            elif self.is_dead:
+                # Count time spent dead
+                self.frames_dead += 1
+                if self.frames_dead % 60 == 0:
+                    self.seconds_dead += 1
+
+                # Check if enemy should revive
+                if self.revive_seconds > 0 and self.seconds_dead >= self.revive_seconds:
+                    self.animate_rise = True
+                    self.current_sprite_index = 0
+                else:
+                    # Stay on last death frame
+                    if self.direction == 1:
+                        self.image = self.die_right_sprites[-1]
+                    else:
+                        self.image = self.die_left_sprites[-1]
 
         def animate(self, sprite_list, speed):
             if self.current_sprite_index < len(sprite_list) - 1:
                 self.current_sprite_index += speed
             else:
                 if self.animate_death:
-                    # Stay on last frame of death animation
                     self.current_sprite_index = len(sprite_list) - 1
                     self.animate_death = False
+                elif self.animate_rise:
+                    self.current_sprite_index = 0
+                    self.animate_rise = False
+                    self.is_dead = False
+                    self.frames_dead = 0
+                    self.seconds_dead = 0
+                    self.hp = 1
                 else:
                     self.current_sprite_index = 0
 
             self.image = sprite_list[int(self.current_sprite_index)]
 
-
-    class ImmortalSoldier(Enemy):
-        """Persian Immortal foot soldier. Basic enemy for Stages 1-2."""
-
-        def __init__(self, x, y, platform_tiles, portal_group, min_speed, max_speed):
-            Enemy.__init__(self, x, y, platform_tiles, portal_group, min_speed, max_speed)
-
-            # Override zombie sprites with Immortal Soldier art
-            self.walk_right_sprites, self.walk_left_sprites = self.generate_mirrored_animation("images/enemies/immortal/walk/Walk ({}).png", 1, 10)
-            self.die_right_sprites, self.die_left_sprites = self.generate_mirrored_animation("images/enemies/immortal/dead/Dead ({}).png", 1, 10)
-            self.rise_right_sprites, self.rise_left_sprites = self.generate_mirrored_animation("images/enemies/immortal/dead/Dead ({}).png", 10, 1, -1)
-
-            # Reset to correct starting sprite
-            if self.direction == -1:
-                self.image = self.walk_left_sprites[self.current_sprite_index]
-            else:
-                self.image = self.walk_right_sprites[self.current_sprite_index]
-
-
-    class WarElephant(Enemy):
-        """War elephant. Slower but tougher. Stages 2-3.
-        Placeholder: uses Immortal Soldier sprites with slower speed."""
-
-        def __init__(self, x, y, platform_tiles, portal_group, min_speed, max_speed):
-            Enemy.__init__(self, x, y, platform_tiles, portal_group,
-                          max(1, min_speed - 1), max(2, max_speed - 2))
-
-            # Use Immortal Soldier art until elephant sprites are ready
-            self.walk_right_sprites, self.walk_left_sprites = self.generate_mirrored_animation("images/enemies/immortal/walk/Walk ({}).png", 1, 10)
-            self.die_right_sprites, self.die_left_sprites = self.generate_mirrored_animation("images/enemies/immortal/dead/Dead ({}).png", 1, 10)
-            self.rise_right_sprites, self.rise_left_sprites = self.generate_mirrored_animation("images/enemies/immortal/dead/Dead ({}).png", 10, 1, -1)
-
-            if self.direction == -1:
-                self.image = self.walk_left_sprites[self.current_sprite_index]
-            else:
-                self.image = self.walk_right_sprites[self.current_sprite_index]
-
-
-    class DarkSorcerer(Enemy):
-        """Dark sorcerer. Faster and harder to hit. Stages 3-4.
-        Placeholder: uses Immortal Soldier sprites with faster speed."""
-
-        def __init__(self, x, y, platform_tiles, portal_group, min_speed, max_speed):
-            Enemy.__init__(self, x, y, platform_tiles, portal_group,
-                          min_speed + 2, max_speed + 3)
-
-            # Use Immortal Soldier art until sorcerer sprites are ready
-            self.walk_right_sprites, self.walk_left_sprites = self.generate_mirrored_animation("images/enemies/immortal/walk/Walk ({}).png", 1, 10)
-            self.die_right_sprites, self.die_left_sprites = self.generate_mirrored_animation("images/enemies/immortal/dead/Dead ({}).png", 1, 10)
-            self.rise_right_sprites, self.rise_left_sprites = self.generate_mirrored_animation("images/enemies/immortal/dead/Dead ({}).png", 10, 1, -1)
-
-            if self.direction == -1:
-                self.image = self.walk_left_sprites[self.current_sprite_index]
-            else:
-                self.image = self.walk_right_sprites[self.current_sprite_index]
-
-    # Register enemy classes so the config loader can find them by name
-    register_enemy_class("ImmortalSoldier", ImmortalSoldier)
-    register_enemy_class("WarElephant", WarElephant)
-    register_enemy_class("DarkSorcerer", DarkSorcerer)
+    # Register base Enemy as fallback for any template name
+    register_enemy_class("Enemy", Enemy)

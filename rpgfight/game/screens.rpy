@@ -1398,6 +1398,59 @@ style nvl_button_text:
 
 
 ################################################################################
+## Campaign Selection Screen
+################################################################################
+
+screen campaign_select(campaigns):
+
+    modal True
+
+    add gui.main_menu_background
+
+    frame:
+        xalign 0.5
+        yalign 0.5
+        xsize 900
+        yminimum 400
+        padding (40, 40, 40, 40)
+        background Frame("gui/frame.png", gui.frame_borders, tile=gui.frame_tile)
+
+        vbox:
+            xalign 0.5
+            spacing 20
+
+            text "Select Campaign" xalign 0.5 size 40 color "#FFD700"
+
+            null height 10
+
+            viewport:
+                scrollbars "vertical"
+                mousewheel True
+                draggable True
+                ymaximum 500
+                xfill True
+
+                vbox:
+                    spacing 15
+                    xfill True
+
+                    for campaign in campaigns:
+                        button:
+                            xfill True
+                            padding (20, 15, 20, 15)
+                            background Frame("gui/frame.png", gui.frame_borders, tile=gui.frame_tile)
+                            hover_background Frame("gui/namebox.png", gui.namebox_borders, tile=gui.namebox_tile)
+                            action Return(campaign["id"])
+
+                            vbox:
+                                spacing 5
+                                text campaign["name"] size 28 color "#FFFFFF"
+                                if campaign.get("description", ""):
+                                    text campaign["description"] size 18 color "#AAAAAA"
+                                text "{} stages".format(campaign["stageCount"]) size 16 color "#888888"
+
+
+################################################################################
 ## Mobile Variants
 ################################################################################
 

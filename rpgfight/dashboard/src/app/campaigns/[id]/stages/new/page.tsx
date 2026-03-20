@@ -21,6 +21,7 @@ export default function NewStagePage() {
     spawnInterval: 6,
     background: "",
     requiresStomp: false,
+    reviveSeconds: 0,
   });
   const [saving, setSaving] = useState(false);
 

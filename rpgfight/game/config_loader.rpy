@@ -14,8 +14,10 @@ init -15 python:
 
     # Dashboard API settings
     _CONFIG_API_URL = "http://localhost:3000/api/export/latest"
+    _CONFIG_CAMPAIGNS_URL = "http://localhost:3000/api/export/campaigns"
     _CONFIG_CACHE_DIR = os.path.join(config.gamedir, "config")
     _CONFIG_CACHE_FILE = os.path.join(_CONFIG_CACHE_DIR, "campaign.json")
+    _CAMPAIGNS_LIST_CACHE = os.path.join(_CONFIG_CACHE_DIR, "campaigns_list.json")
 
     # Loaded config data (None = not loaded yet)
     _loaded_config = None
@@ -67,6 +69,68 @@ init -15 python:
                 json.dump(data, f, indent=2)
         except Exception:
             pass
+
+    def _fetch_campaigns_list():
+        """Fetch list of available campaigns from the dashboard API."""
+        try:
+            import urllib2
+            req = urllib2.Request(_CONFIG_CAMPAIGNS_URL)
+            response = urllib2.urlopen(req, timeout=5)
+            data = json.loads(response.read())
+            return data.get("campaigns", [])
+        except Exception:
+            pass
+
+        try:
+            from urllib.request import urlopen, Request
+            req = Request(_CONFIG_CAMPAIGNS_URL)
+            response = urlopen(req, timeout=5)
+            data = json.loads(response.read().decode("utf-8"))
+            return data.get("campaigns", [])
+        except Exception:
+            pass
+
+        return None
+
+    def _load_cached_campaigns_list():
+        """Try to load campaigns list from cached JSON file."""
+        try:
+            if os.path.exists(_CAMPAIGNS_LIST_CACHE):
+                with open(_CAMPAIGNS_LIST_CACHE, "r") as f:
+                    return json.load(f)
+        except Exception:
+            pass
+        return None
+
+    def _save_campaigns_list_cache(data):
+        """Cache campaigns list to JSON file for offline use."""
+        try:
+            if not os.path.exists(_CONFIG_CACHE_DIR):
+                os.makedirs(_CONFIG_CACHE_DIR)
+            with open(_CAMPAIGNS_LIST_CACHE, "w") as f:
+                json.dump(data, f, indent=2)
+        except Exception:
+            pass
+
+    def load_campaigns_list():
+        """
+        Load list of available campaigns. Tries API first, then cache.
+        Returns a list of dicts with id, name, description, stageCount.
+        Returns None if no campaigns available.
+        """
+        campaigns = _fetch_campaigns_list()
+        if campaigns:
+            _save_campaigns_list_cache(campaigns)
+            print("[CONFIG] Loaded %d campaigns from API" % len(campaigns))
+            return campaigns
+
+        campaigns = _load_cached_campaigns_list()
+        if campaigns:
+            print("[CONFIG] Loaded %d campaigns from cache" % len(campaigns))
+            return campaigns
+
+        print("[CONFIG] No campaigns list available")
+        return None
 
     def load_game_config(campaign_id=None):
         """
@@ -124,13 +188,16 @@ init -15 python:
         for stage_data in data.get("stages", []):
             stage_num = stage_data["stageNum"]
 
-            # Resolve enemy classes from registry
+            # Resolve enemy types and sprite folders
             enemy_types = []
             enemy_speed_ranges = []
+            enemy_sprites = []
+            enemy_scales = []
             for e in stage_data.get("enemies", []):
-                cls = get_enemy_class(e["name"])
-                enemy_types.append(cls)
+                enemy_types.append(Enemy)
                 enemy_speed_ranges.append((e["minSpeed"], e["maxSpeed"]))
+                enemy_sprites.append(e.get("spriteWalk", ""))
+                enemy_scales.append(e.get("spriteScale", 1.0))
 
             # Use the first enemy's speed range as the stage range
             # (stage_config uses a single range, enemies override individually)
@@ -148,9 +215,12 @@ init -15 python:
                 enemy_speed_range=(min_spd, max_spd),
                 spawn_interval=stage_data["spawnInterval"],
                 round_time=stage_data["roundTime"],
-                background=stage_data.get("background", "images/zk_background.jpeg"),
+                background=stage_data.get("background", ""),
                 enemy_hp=stage_data.get("enemies", [{}])[0].get("hp", 1) if stage_data.get("enemies") else 1,
                 requires_stomp=stage_data.get("requiresStomp", False),
+                revive_seconds=stage_data.get("reviveSeconds", 0),
+                enemy_sprites=enemy_sprites,
+                enemy_scales=enemy_scales,
             )
             configs[stage_num] = sc
 

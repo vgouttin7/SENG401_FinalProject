@@ -41,6 +41,7 @@ export async function GET() {
       spawnInterval: stage.spawnInterval,
       background: stage.background,
       requiresStomp: stage.requiresStomp,
+      reviveSeconds: stage.reviveSeconds,
       dialogueMusic: stage.dialogueMusic,
       combatMusic: stage.combatMusic,
       quizMusic: stage.quizMusic,
@@ -54,6 +55,7 @@ export async function GET() {
         speedModifier: se.enemyTemplate.speedModifier,
         spriteWalk: se.enemyTemplate.spriteWalk,
         spriteDead: se.enemyTemplate.spriteDead,
+        spriteScale: se.enemyTemplate.spriteScale,
       })),
       dialogue: stage.dialogueLines.map((dl) => ({
         speaker: dl.character.name,

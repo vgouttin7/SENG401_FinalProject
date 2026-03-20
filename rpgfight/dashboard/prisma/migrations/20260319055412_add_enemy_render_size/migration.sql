@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "EnemyTemplate" ADD COLUMN     "renderHeight" INTEGER NOT NULL DEFAULT 120,
+ADD COLUMN     "renderWidth" INTEGER NOT NULL DEFAULT 140;

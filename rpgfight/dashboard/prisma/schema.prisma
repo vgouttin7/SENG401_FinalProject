@@ -32,7 +32,8 @@ model Stage {
   roundTime     Int    @default(45) // seconds
   spawnInterval Int    @default(6)  // seconds
   background    String @default("") // sprite path for background image
-  requiresStomp Boolean @default(false)
+  requiresStomp  Boolean @default(false)
+  reviveSeconds  Int     @default(0) // 0 = no revive; >0 = downed enemies revive after N seconds
 
   // Audio settings
   dialogueMusic String @default("") // audio file path for dialogue background music
@@ -93,6 +94,7 @@ model EnemyTemplate {
   hp            Int    @default(1)
   spriteWalk    String @default("") // path to walk sprite folder
   spriteDead    String @default("") // path to dead sprite folder
+  spriteScale   Float  @default(1.0) // scale modifier (1.0 = natural size, 2.0 = double)
   description   String @default("")
 
   createdAt DateTime @default(now())

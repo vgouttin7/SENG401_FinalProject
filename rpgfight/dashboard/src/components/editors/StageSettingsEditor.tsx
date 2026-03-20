@@ -10,6 +10,7 @@ interface Props {
     spawnInterval: number;
     background: string;
     requiresStomp: boolean;
+    reviveSeconds: number;
     dialogueMusic: string;
     combatMusic: string;
     quizMusic: string;
@@ -24,6 +25,7 @@ export default function StageSettingsEditor({ stage, onSave }: Props) {
     spawnInterval: stage.spawnInterval,
     background: stage.background,
     requiresStomp: stage.requiresStomp,
+    reviveSeconds: stage.reviveSeconds ?? 0,
     dialogueMusic: stage.dialogueMusic ?? "",
     combatMusic: stage.combatMusic ?? "",
     quizMusic: stage.quizMusic ?? "",
@@ -124,6 +126,24 @@ export default function StageSettingsEditor({ stage, onSave }: Props) {
         />
         <label className="text-sm text-gray-400">Requires Stomp (beam knocks down, must stomp to kill)</label>
       </div>
+      {form.requiresStomp && (
+        <div>
+          <label className="block text-sm font-medium text-gray-400 mb-1">Revive Seconds (0 = no revive)</label>
+          <input
+            type="number"
+            value={form.reviveSeconds}
+            onChange={(e) => {
+              const v = parseInt(e.target.value);
+              if (!isNaN(v)) setForm({ ...form, reviveSeconds: v });
+            }}
+            min={0}
+            className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-gray-100 focus:border-amber-500 focus:outline-none"
+          />
+          <p className="text-xs text-gray-600 mt-1">
+            If &gt; 0, downed enemies will revive after this many seconds if not stomped
+          </p>
+        </div>
+      )}
       <button
         onClick={handleSave}
         disabled={saving}

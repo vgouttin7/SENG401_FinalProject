@@ -4,7 +4,8 @@ init -2 python:
         def __init__(self, stage_id, era_name, tile_map, enemy_types,
                      enemy_speed_range, spawn_interval, round_time,
                      background="images/zk_background.jpeg",
-                     enemy_hp=1, requires_stomp=False):
+                     enemy_hp=1, requires_stomp=False, revive_seconds=0,
+                     enemy_sprites=None, enemy_scales=None):
             self.stage_id = stage_id
             self.era_name = era_name
             self.tile_map = tile_map
@@ -15,6 +16,9 @@ init -2 python:
             self.background = background
             self.enemy_hp = enemy_hp
             self.requires_stomp = requires_stomp
+            self.revive_seconds = revive_seconds
+            self.enemy_sprites = enemy_sprites if enemy_sprites else []
+            self.enemy_scales = enemy_scales if enemy_scales else []
 
     # Stage 1: Early Persia - easy
     STAGE_1_MAP = [
@@ -113,7 +117,7 @@ init -2 python:
             stage_id=1,
             era_name="Early Persia - The Elamite Period",
             tile_map=STAGE_1_MAP,
-            enemy_types=[ImmortalSoldier],
+            enemy_types=[Enemy],
             enemy_speed_range=(1, 3),
             spawn_interval=6,
             round_time=45,
@@ -125,7 +129,7 @@ init -2 python:
             stage_id=2,
             era_name="Rise of Cyrus the Great",
             tile_map=STAGE_2_MAP,
-            enemy_types=[ImmortalSoldier, WarElephant],
+            enemy_types=[Enemy, Enemy],
             enemy_speed_range=(2, 5),
             spawn_interval=5,
             round_time=40,
@@ -137,7 +141,7 @@ init -2 python:
             stage_id=3,
             era_name="Fall of Babylon",
             tile_map=STAGE_3_MAP,
-            enemy_types=[ImmortalSoldier, DarkSorcerer],
+            enemy_types=[Enemy, Enemy],
             enemy_speed_range=(3, 6),
             spawn_interval=4,
             round_time=35,
@@ -149,7 +153,7 @@ init -2 python:
             stage_id=4,
             era_name="The Cyrus Cylinder & Legacy",
             tile_map=STAGE_4_MAP,
-            enemy_types=[ImmortalSoldier, WarElephant, DarkSorcerer],
+            enemy_types=[Enemy, Enemy, Enemy],
             enemy_speed_range=(4, 8),
             spawn_interval=3,
             round_time=60,

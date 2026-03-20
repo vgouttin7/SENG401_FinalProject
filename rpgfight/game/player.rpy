@@ -18,10 +18,10 @@ init -5 python:
                 self.VERTICAL_JUMP_SPEED = _player_config.get("jump_speed", 23)
                 self.STARTING_HEALTH = int(_player_config.get("starting_health", 100))
 
-            self.move_right_sprites, self.move_left_sprites = self.generate_mirrored_animation("images/player/run/Run ({}).png", 1, 10)
-            self.idle_right_sprites, self.idle_left_sprites = self.generate_mirrored_animation("images/player/idle/Idle ({}).png", 1, 10)
-            self.jump_right_sprites, self.jump_left_sprites = self.generate_mirrored_animation("images/player/jump/Jump ({}).png", 1, 10)
-            self.attack_right_sprites, self.attack_left_sprites = self.generate_mirrored_animation("images/player/attack/Attack ({}).png", 1, 10)
+            self.move_right_sprites, self.move_left_sprites = self.generate_mirrored_animation("images/sprites/player/run_{:03d}.png", 0, 9)
+            self.idle_right_sprites, self.idle_left_sprites = self.generate_mirrored_animation("images/sprites/player/idle_{:03d}.png", 0, 9)
+            self.jump_right_sprites, self.jump_left_sprites = self.generate_mirrored_animation("images/sprites/player/jump_{:03d}.png", 0, 9)
+            self.attack_right_sprites, self.attack_left_sprites = self.generate_mirrored_animation("images/sprites/player/attack_{:03d}.png", 0, 9)
 
             self.current_sprite_index = 0
             self.image = self.idle_right_sprites[self.current_sprite_index]
@@ -45,6 +45,9 @@ init -5 python:
             self.is_flashing = False
             self.flash_timer = 0
             self.flash_duration = 90    # how many frames the flash lasts
+
+            # Portal cooldown to prevent infinite teleport loops
+            self.portal_cooldown = 0
 
             # Modifier-affected stats
             self.speed_multiplier = 1.0
@@ -86,8 +89,8 @@ init -5 python:
             self.velocity += self.acceleration
             self.position += self.velocity + (0.5 * self.acceleration)
 
-            if self.position.x < 0:
-                self.position.x = max_width
+            if self.position.x + self.width < 0:
+                self.position.x = max_width - self.width
             elif self.position.x > max_width:
                 self.position.x = 0
 
@@ -105,18 +108,31 @@ init -5 python:
                         while platform.is_colliding(self):
                             self.position.y += 1
 
-            for portal in self.portal_group:
-                if portal.is_colliding(self):
-                    renpy.sound.play("audio/zk_portal_sound.wav", channel=2)
-                    renpy.sound.set_volume(0.5, channel=2)
-                    if self.position.x > max_width // 2:
-                        self.position.x = 150
-                    else:
-                        self.position.x = max_width - 150 - self.width
-                    if self.position.y > max_height // 2:
-                        self.position.y = 50
-                    else:
-                        self.position.y = max_height - 150 - self.height
+            # Tick down portal cooldown
+            if self.portal_cooldown > 0:
+                self.portal_cooldown -= 1
+
+            if self.portal_cooldown == 0:
+                for portal in self.portal_group:
+                    if portal.is_colliding(self):
+                        # Find the other portal of the SAME color
+                        other = None
+                        for p in self.portal_group:
+                            if p is not portal and p.color == portal.color:
+                                other = p
+                                break
+
+                        if other is not None:
+                            renpy.sound.play("audio/zk_portal_sound.wav", channel=2)
+                            renpy.sound.set_volume(0.5, channel=2)
+                            # Keep same Y level, only nudge on X axis
+                            self.position.y = other.position.y + (other.height - self.height) / 2
+                            if other.position.x < max_width // 2:
+                                self.position.x = other.position.x + other.width + 10
+                            else:
+                                self.position.x = other.position.x - self.width - 10
+                            self.portal_cooldown = 30
+                        break
 
         def check_animations(self):
             if self.animate_jump:
@@ -201,9 +217,9 @@ init -5 python:
                 self.RANGE = _player_config.get("beam_range", 500)
 
             if player.velocity.x > 0:
-                self.image = Image("images/player/slash.png")
+                self.image = Image("images/sprites/player/slash.png")
             else:
-                self.image = Transform(Image("images/player/slash.png"), xzoom=-1.0)
+                self.image = Transform(Image("images/sprites/player/slash.png"), xzoom=-1.0)
                 self.VELOCITY = -1 * self.VELOCITY
 
             self.starting_x = x

@@ -13,8 +13,8 @@ init -15 python:
     import os
 
     # Dashboard API settings
-    _CONFIG_API_URL = "https://farnoodm.com/api/export/latest"
-    _CONFIG_CAMPAIGNS_URL = "https://farnoodm.com/api/export/campaigns"
+    _CONFIG_API_URL = "https://farnoodm.com/dashboard/api/export/latest"
+    _CONFIG_CAMPAIGNS_URL = "https://farnoodm.com/dashboard/api/export/campaigns"
     _CONFIG_CACHE_DIR = os.path.join(config.gamedir, "config")
     _CONFIG_CACHE_FILE = os.path.join(_CONFIG_CACHE_DIR, "campaign.json")
     _CAMPAIGNS_LIST_CACHE = os.path.join(_CONFIG_CACHE_DIR, "campaigns_list.json")
@@ -27,7 +27,7 @@ init -15 python:
         """Try to fetch config from the dashboard API."""
         url = _CONFIG_API_URL
         if campaign_id is not None:
-            url = "https://farnoodm.com/api/export/" + str(campaign_id)
+            url = "https://farnoodm.com/dashboard/api/export/" + str(campaign_id)
 
         try:
             import urllib2

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { api } from "@/lib/api";
 import VictoryDialogueEditor from "@/components/editors/VictoryDialogueEditor";
 
 interface VictoryLine {
@@ -25,7 +26,7 @@ export default function CampaignVictorySection({ campaignId, victoryMusic: initi
 
   async function saveMusic() {
     setSaving(true);
-    await fetch(`/api/campaigns/${campaignId}`, {
+    await fetch(api(`/api/campaigns/${campaignId}`), {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ victoryMusic: music }),
@@ -34,7 +35,7 @@ export default function CampaignVictorySection({ campaignId, victoryMusic: initi
   }
 
   async function reload() {
-    const res = await fetch(`/api/campaigns/${campaignId}/victory-lines`);
+    const res = await fetch(api(`/api/campaigns/${campaignId}/victory-lines`));
     if (res.ok) setLines(await res.json());
   }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { api } from "@/lib/api";
 
 interface Question {
   id: number;
@@ -28,7 +29,7 @@ export default function QuestionsEditor({ stageId, questions, onSave }: Props) {
   }
 
   async function saveEdit(id: number) {
-    await fetch(`/api/stages/${stageId}/questions/${id}`, {
+    await fetch(api(`/api/stages/${stageId}/questions/${id}`), {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
@@ -38,12 +39,12 @@ export default function QuestionsEditor({ stageId, questions, onSave }: Props) {
   }
 
   async function deleteQuestion(id: number) {
-    await fetch(`/api/stages/${stageId}/questions/${id}`, { method: "DELETE" });
+    await fetch(api(`/api/stages/${stageId}/questions/${id}`), { method: "DELETE" });
     onSave();
   }
 
   async function createQuestion() {
-    await fetch(`/api/stages/${stageId}/questions`, {
+    await fetch(api(`/api/stages/${stageId}/questions`), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...form, sortOrder: questions.length }),

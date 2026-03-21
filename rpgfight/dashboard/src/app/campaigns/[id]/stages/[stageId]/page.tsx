@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { api } from "@/lib/api";
 import DialogueEditor from "@/components/editors/DialogueEditor";
 import QuestionsEditor from "@/components/editors/QuestionsEditor";
 import StageSettingsEditor from "@/components/editors/StageSettingsEditor";
@@ -67,7 +68,7 @@ export default function StageDetailPage() {
   const [loading, setLoading] = useState(true);
 
   async function loadStage() {
-    const res = await fetch(`/api/stages/${stageId}`);
+    const res = await fetch(api(`/api/stages/${stageId}`));
     if (res.ok) {
       setStage(await res.json());
     }

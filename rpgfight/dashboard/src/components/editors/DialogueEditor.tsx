@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { api } from "@/lib/api";
 
 interface DialogueLine {
   id: number;
@@ -34,12 +35,12 @@ export default function DialogueEditor({ stageId, dialogueLines, onSave }: Props
   const [editPortrait, setEditPortrait] = useState("");
 
   useEffect(() => {
-    fetch("/api/characters").then((r) => r.json()).then(setCharacters);
+    fetch(api("/api/characters")).then((r) => r.json()).then(setCharacters);
   }, []);
 
   async function addLine() {
     if (!newText.trim() || !newCharId) return;
-    await fetch(`/api/stages/${stageId}/dialogue`, {
+    await fetch(api(`/api/stages/${stageId}/dialogue`), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -55,12 +56,12 @@ export default function DialogueEditor({ stageId, dialogueLines, onSave }: Props
   }
 
   async function deleteLine(lineId: number) {
-    await fetch(`/api/stages/${stageId}/dialogue/${lineId}`, { method: "DELETE" });
+    await fetch(api(`/api/stages/${stageId}/dialogue/${lineId}`), { method: "DELETE" });
     onSave();
   }
 
   async function updateLine(lineId: number) {
-    await fetch(`/api/stages/${stageId}/dialogue/${lineId}`, {
+    await fetch(api(`/api/stages/${stageId}/dialogue/${lineId}`), {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ characterId: editCharId, text: editText, portrait: editPortrait }),

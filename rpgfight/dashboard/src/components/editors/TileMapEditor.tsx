@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { api } from "@/lib/api";
 
 const COLS = 32;
 const ROWS = 18;
@@ -26,7 +27,7 @@ export default function TileMapEditor({ stageId, tileMap, onSave }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    fetch("/api/tile-types").then((r) => r.json()).then(setTileTypes);
+    fetch(api("/api/tile-types")).then((r) => r.json()).then(setTileTypes);
   }, []);
 
   const colorMap = useCallback(() => {
@@ -100,7 +101,7 @@ export default function TileMapEditor({ stageId, tileMap, onSave }: Props) {
 
   async function handleSave() {
     setSaving(true);
-    const res = await fetch(`/api/stages/${stageId}/tilemap`, {
+    const res = await fetch(api(`/api/stages/${stageId}/tilemap`), {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ tileMap: grid }),

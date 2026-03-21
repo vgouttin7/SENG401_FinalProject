@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { api } from "@/lib/api";
 
 interface EnemyTemplate {
   id: number;
@@ -23,7 +24,7 @@ export default function EnemiesPage() {
   });
 
   async function load() {
-    const res = await fetch("/api/enemies");
+    const res = await fetch(api("/api/enemies"));
     setEnemies(await res.json());
   }
 
@@ -45,13 +46,13 @@ export default function EnemiesPage() {
   async function save() {
     if (!form.name || !form.displayName) return;
     if (editing) {
-      await fetch(`/api/enemies/${editing.id}`, {
+      await fetch(api(`/api/enemies/${editing.id}`), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
     } else {
-      await fetch("/api/enemies", {
+      await fetch(api("/api/enemies"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
@@ -63,7 +64,7 @@ export default function EnemiesPage() {
 
   async function remove(id: number) {
     if (!confirm("Delete this enemy template?")) return;
-    await fetch(`/api/enemies/${id}`, { method: "DELETE" });
+    await fetch(api(`/api/enemies/${id}`), { method: "DELETE" });
     load();
   }
 

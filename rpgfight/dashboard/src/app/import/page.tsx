@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
 
 export default function ImportPage() {
   const router = useRouter();
@@ -39,7 +40,7 @@ export default function ImportPage() {
 
     try {
       const data = JSON.parse(jsonText);
-      const res = await fetch("/api/import", {
+      const res = await fetch(api("/api/import"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),

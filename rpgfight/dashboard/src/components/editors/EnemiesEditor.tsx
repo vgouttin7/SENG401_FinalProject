@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { api } from "@/lib/api";
 
 interface StageEnemy {
   id: number;
@@ -31,7 +32,7 @@ export default function EnemiesEditor({ stageId, stageEnemies, onSave }: Props) 
   const [newMaxSpeed, setNewMaxSpeed] = useState(3);
 
   useEffect(() => {
-    fetch("/api/enemies").then((r) => r.json()).then(setTemplates);
+    fetch(api("/api/enemies")).then((r) => r.json()).then(setTemplates);
   }, []);
 
   const usedIds = new Set(stageEnemies.map((se) => se.enemyTemplateId));
@@ -39,7 +40,7 @@ export default function EnemiesEditor({ stageId, stageEnemies, onSave }: Props) 
 
   async function addEnemy() {
     if (!newTemplateId) return;
-    await fetch(`/api/stages/${stageId}/enemies`, {
+    await fetch(api(`/api/stages/${stageId}/enemies`), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ enemyTemplateId: newTemplateId, minSpeed: newMinSpeed, maxSpeed: newMaxSpeed }),
@@ -49,7 +50,7 @@ export default function EnemiesEditor({ stageId, stageEnemies, onSave }: Props) 
   }
 
   async function removeEnemy(stageEnemyId: number) {
-    await fetch(`/api/stages/${stageId}/enemies`, {
+    await fetch(api(`/api/stages/${stageId}/enemies`), {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ stageEnemyId }),

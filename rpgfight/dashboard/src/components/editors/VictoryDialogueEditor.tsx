@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { api } from "@/lib/api";
 
 interface VictoryLine {
   id: number;
@@ -34,12 +35,12 @@ export default function VictoryDialogueEditor({ campaignId, victoryLines, onSave
   const [editPortrait, setEditPortrait] = useState("");
 
   useEffect(() => {
-    fetch("/api/characters").then((r) => r.json()).then(setCharacters);
+    fetch(api("/api/characters")).then((r) => r.json()).then(setCharacters);
   }, []);
 
   async function addLine() {
     if (!newText.trim() || !newCharId) return;
-    await fetch(`/api/campaigns/${campaignId}/victory-lines`, {
+    await fetch(api(`/api/campaigns/${campaignId}/victory-lines`), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -54,12 +55,12 @@ export default function VictoryDialogueEditor({ campaignId, victoryLines, onSave
   }
 
   async function deleteLine(lineId: number) {
-    await fetch(`/api/campaigns/${campaignId}/victory-lines?lineId=${lineId}`, { method: "DELETE" });
+    await fetch(api(`/api/campaigns/${campaignId}/victory-lines?lineId=${lineId}`), { method: "DELETE" });
     onSave();
   }
 
   async function updateLine(lineId: number) {
-    await fetch(`/api/campaigns/${campaignId}/victory-lines`, {
+    await fetch(api(`/api/campaigns/${campaignId}/victory-lines`), {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id: lineId, characterId: editCharId, text: editText, portrait: editPortrait }),

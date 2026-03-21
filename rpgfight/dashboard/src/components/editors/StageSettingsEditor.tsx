@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { api } from "@/lib/api";
 
 interface Props {
   stage: {
@@ -38,7 +39,7 @@ export default function StageSettingsEditor({ stage, onSave }: Props) {
 
   async function handleSave() {
     setSaving(true);
-    const res = await fetch(`/api/stages/${stage.id}`, {
+    const res = await fetch(api(`/api/stages/${stage.id}`), {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),

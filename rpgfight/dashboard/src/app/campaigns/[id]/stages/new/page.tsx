@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { api } from "@/lib/api";
 
 const EMPTY_MAP = Array.from({ length: 18 }, (_, r) => {
   if (r === 1) {
@@ -47,7 +48,7 @@ export default function NewStagePage() {
     setSaving(true);
 
     // Create stage via campaign stages endpoint
-    const res = await fetch(`/api/stages/${campaignId}`, {
+    const res = await fetch(api(`/api/stages/${campaignId}`), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...form, campaignId: parseInt(campaignId), tileMap: EMPTY_MAP }),
@@ -55,7 +56,7 @@ export default function NewStagePage() {
 
     if (!res.ok) {
       // Use direct prisma route instead
-      const res2 = await fetch(`/api/campaigns/${campaignId}/stages`, {
+      const res2 = await fetch(api(`/api/campaigns/${campaignId}/stages`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, campaignId: parseInt(campaignId), tileMap: EMPTY_MAP }),

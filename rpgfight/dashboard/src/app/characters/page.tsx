@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { api } from "@/lib/api";
 
 interface Character {
   id: number;
@@ -15,7 +16,7 @@ export default function CharactersPage() {
   const [form, setForm] = useState({ name: "", color: "#ffffff", portrait: "" });
 
   async function load() {
-    const res = await fetch("/api/characters");
+    const res = await fetch(api("/api/characters"));
     setCharacters(await res.json());
   }
 
@@ -34,13 +35,13 @@ export default function CharactersPage() {
   async function save() {
     if (!form.name) return;
     if (editing) {
-      await fetch(`/api/characters/${editing.id}`, {
+      await fetch(api(`/api/characters/${editing.id}`), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
     } else {
-      await fetch("/api/characters", {
+      await fetch(api("/api/characters"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
@@ -53,7 +54,7 @@ export default function CharactersPage() {
 
   async function remove(id: number) {
     if (!confirm("Delete this character?")) return;
-    await fetch(`/api/characters/${id}`, { method: "DELETE" });
+    await fetch(api(`/api/characters/${id}`), { method: "DELETE" });
     load();
   }
 

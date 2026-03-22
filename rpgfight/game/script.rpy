@@ -239,7 +239,7 @@ label victory:
 
     play sound "audio/victory_sound.mp3"
 
-    "Congratulations! You completed Chronicles of Change: Persia!"
+    "Congratulations! You completed Chronicles of Change!"
 
     "Final Score: [game_score]\nHigh Score: [persistent.high_score]"
 

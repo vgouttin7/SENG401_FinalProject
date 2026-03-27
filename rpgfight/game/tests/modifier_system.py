@@ -1,3 +1,6 @@
+#Victor Gouttin
+#"Mock" modifier system class to avoid importing ren'py code and just test the logic of the modifier system class
+
 class Modifier():
         EXTRA_DASH = "extra_dash"
         HEALTH_BOOST = "health_boost"

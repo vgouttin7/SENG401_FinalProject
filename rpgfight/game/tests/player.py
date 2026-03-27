@@ -1,3 +1,6 @@
+#Victor Gouttin
+#"Mock" player class to avoid importing ren'py code and just test the logic of the player class
+
 class Player:
     HORIZONTAL_ACCELERATION = 2
     HORIZONTAL_FRICTION = 0.15

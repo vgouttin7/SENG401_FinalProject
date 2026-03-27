@@ -1,0 +1,5 @@
+# Build distributions
+ChroniclesOfChange-1.2-dists/
+
+# macOS
+.DS_Store

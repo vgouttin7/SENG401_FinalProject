@@ -92,7 +92,7 @@ label run_stage:
         jump victory
 
     # Play dialogue
-    call play_dialogue(current_stage)
+    call play_dialogue(current_stage) from _call_play_dialogue
 
 label run_stage_combat:
 
@@ -117,7 +117,7 @@ label run_stage_combat:
     else:
         "Stage complete! Score: [combat_stage.score]"
 
-    call run_quiz(current_stage)
+    call run_quiz(current_stage) from _call_run_quiz
 
     $ current_stage += 1
 

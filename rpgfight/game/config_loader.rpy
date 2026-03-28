@@ -114,50 +114,33 @@ init -15 python:
 
     def load_campaigns_list():
         """
-        Load list of available campaigns. Tries API first, then cache.
+        Load list of available campaigns from the live API.
         Returns a list of dicts with id, name, description, stageCount.
-        Returns None if no campaigns available.
+        Returns None if API is unavailable.
         """
         campaigns = _fetch_campaigns_list()
         if campaigns:
-            _save_campaigns_list_cache(campaigns)
             print("[CONFIG] Loaded %d campaigns from API" % len(campaigns))
             return campaigns
 
-        campaigns = _load_cached_campaigns_list()
-        if campaigns:
-            print("[CONFIG] Loaded %d campaigns from cache" % len(campaigns))
-            return campaigns
-
-        print("[CONFIG] No campaigns list available")
+        print("[CONFIG] API unavailable — no campaigns loaded")
         return None
 
     def load_game_config(campaign_id=None):
         """
-        Load campaign config. Tries API first, then cache, then returns None
-        (which means the game falls back to hardcoded .rpy data).
+        Load campaign config from the live API. Returns None if unavailable.
         """
         global _loaded_config, _config_loaded_from
 
-        # Try live API
         data = _fetch_config_from_api(campaign_id)
         if data:
             _loaded_config = data
             _config_loaded_from = "api"
-            _save_config_cache(data)
             print("[CONFIG] Loaded from API — %d stages" % len(data.get("stages", [])))
             return data
 
-        # Try cached file
-        data = _load_cached_config()
-        if data:
-            _loaded_config = data
-            _config_loaded_from = "cache"
-            print("[CONFIG] Loaded from cache — %d stages" % len(data.get("stages", [])))
-            return data
-
-        _config_loaded_from = "fallback"
-        print("[CONFIG] No API or cache available — using hardcoded fallback")
+        _config_loaded_from = "none"
+        print("[CONFIG] API unavailable — no config loaded")
         return None
 
     # ─── ENEMY CLASS REGISTRY ──────────────────────────────────
@@ -341,8 +324,6 @@ init -15 python:
     # Pre-load player config at init time so Player class can use it.
     # This runs before player.rpy (init -15 < init -5).
     _player_config = None
-    _preload_config = _load_cached_config()
-    if _preload_config is None:
-        _preload_config = _fetch_config_from_api()
+    _preload_config = _fetch_config_from_api()
     if _preload_config:
         _player_config = build_player_config_from_json(_preload_config)

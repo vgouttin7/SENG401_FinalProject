@@ -11,6 +11,12 @@ init -15 python:
 
     import json
     import os
+    import ssl
+
+    # SSL context for API calls — skip verification for our own server
+    _ssl_ctx = ssl.create_default_context()
+    _ssl_ctx.check_hostname = False
+    _ssl_ctx.verify_mode = ssl.CERT_NONE
 
     # Dashboard API settings
     _CONFIG_API_URL = "https://farnoodm.com/dashboard/api/export/latest"
@@ -30,23 +36,13 @@ init -15 python:
             url = "https://farnoodm.com/dashboard/api/export/" + str(campaign_id)
 
         try:
-            import urllib2
-            req = urllib2.Request(url)
-            response = urllib2.urlopen(req, timeout=5)
-            data = json.loads(response.read())
-            return data
-        except Exception:
-            pass
-
-        # Try Python 3 style
-        try:
             from urllib.request import urlopen, Request
-            req = Request(url)
-            response = urlopen(req, timeout=5)
+            req = Request(url, headers={"User-Agent": "ChroniclesOfChange/1.2"})
+            response = urlopen(req, timeout=5, context=_ssl_ctx)
             data = json.loads(response.read().decode("utf-8"))
             return data
-        except Exception:
-            pass
+        except Exception as e:
+            print("[CONFIG] fetch failed: %s" % str(e))
 
         return None
 
@@ -73,22 +69,13 @@ init -15 python:
     def _fetch_campaigns_list():
         """Fetch list of available campaigns from the dashboard API."""
         try:
-            import urllib2
-            req = urllib2.Request(_CONFIG_CAMPAIGNS_URL)
-            response = urllib2.urlopen(req, timeout=5)
-            data = json.loads(response.read())
-            return data.get("campaigns", [])
-        except Exception:
-            pass
-
-        try:
             from urllib.request import urlopen, Request
-            req = Request(_CONFIG_CAMPAIGNS_URL)
-            response = urlopen(req, timeout=5)
+            req = Request(_CONFIG_CAMPAIGNS_URL, headers={"User-Agent": "ChroniclesOfChange/1.2"})
+            response = urlopen(req, timeout=5, context=_ssl_ctx)
             data = json.loads(response.read().decode("utf-8"))
             return data.get("campaigns", [])
-        except Exception:
-            pass
+        except Exception as e:
+            print("[CONFIG] campaigns fetch failed: %s" % str(e))
 
         return None
 

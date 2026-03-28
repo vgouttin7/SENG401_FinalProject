@@ -173,10 +173,7 @@ init python:
                     self.is_paused = False
                     renpy.music.set_pause(False, channel="music")
 
-            if renpy.emscripten:
-                renpy.redraw(self, 1.0/30.0)
-            else:
-                renpy.redraw(self, 0)
+            renpy.redraw(self, 0)
             return r
 
         def event(self, ev, x, y, st):

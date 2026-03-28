@@ -11,12 +11,16 @@ init -15 python:
 
     import json
     import os
-    import ssl
 
     # SSL context for API calls — skip verification for our own server
-    _ssl_ctx = ssl.create_default_context()
-    _ssl_ctx.check_hostname = False
-    _ssl_ctx.verify_mode = ssl.CERT_NONE
+    # Web builds (emscripten) don't have ssl module; browser handles HTTPS
+    try:
+        import ssl
+        _ssl_ctx = ssl.create_default_context()
+        _ssl_ctx.check_hostname = False
+        _ssl_ctx.verify_mode = ssl.CERT_NONE
+    except ImportError:
+        _ssl_ctx = None
 
     # Dashboard API settings
     _CONFIG_API_URL = "https://farnoodm.com/dashboard/api/export/latest"
@@ -29,22 +33,45 @@ init -15 python:
     _loaded_config = None
     _config_loaded_from = "none"
 
+    def _fetch_url(url):
+        """Fetch JSON from a URL. Uses JS fetch on web, urllib on desktop."""
+        if renpy.emscripten:
+            try:
+                import emscripten
+                js = """
+                    (function() {
+                        var xhr = new XMLHttpRequest();
+                        xhr.open('GET', '%s', false);
+                        xhr.send(null);
+                        if (xhr.status === 200) return xhr.responseText;
+                        return '';
+                    })()
+                """ % url
+                result = emscripten.run_script_string(js)
+                if result:
+                    return json.loads(result)
+            except Exception as e:
+                print("[CONFIG] web fetch failed: %s" % str(e))
+            return None
+
+        try:
+            from urllib.request import urlopen, Request
+            req = Request(url, headers={"User-Agent": "ChroniclesOfChange/1.2"})
+            if _ssl_ctx:
+                response = urlopen(req, timeout=5, context=_ssl_ctx)
+            else:
+                response = urlopen(req, timeout=5)
+            return json.loads(response.read().decode("utf-8"))
+        except Exception as e:
+            print("[CONFIG] fetch failed: %s" % str(e))
+        return None
+
     def _fetch_config_from_api(campaign_id=None):
         """Try to fetch config from the dashboard API."""
         url = _CONFIG_API_URL
         if campaign_id is not None:
             url = "https://farnoodm.com/dashboard/api/export/" + str(campaign_id)
-
-        try:
-            from urllib.request import urlopen, Request
-            req = Request(url, headers={"User-Agent": "ChroniclesOfChange/1.2"})
-            response = urlopen(req, timeout=5, context=_ssl_ctx)
-            data = json.loads(response.read().decode("utf-8"))
-            return data
-        except Exception as e:
-            print("[CONFIG] fetch failed: %s" % str(e))
-
-        return None
+        return _fetch_url(url)
 
     def _load_cached_config():
         """Try to load config from cached JSON file."""
@@ -68,15 +95,9 @@ init -15 python:
 
     def _fetch_campaigns_list():
         """Fetch list of available campaigns from the dashboard API."""
-        try:
-            from urllib.request import urlopen, Request
-            req = Request(_CONFIG_CAMPAIGNS_URL, headers={"User-Agent": "ChroniclesOfChange/1.2"})
-            response = urlopen(req, timeout=5, context=_ssl_ctx)
-            data = json.loads(response.read().decode("utf-8"))
+        data = _fetch_url(_CONFIG_CAMPAIGNS_URL)
+        if data:
             return data.get("campaigns", [])
-        except Exception as e:
-            print("[CONFIG] campaigns fetch failed: %s" % str(e))
-
         return None
 
     def _load_cached_campaigns_list():

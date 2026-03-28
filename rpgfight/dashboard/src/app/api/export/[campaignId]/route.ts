@@ -98,5 +98,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ campaig
     });
   }
 
-  return NextResponse.json(exportData);
+  return NextResponse.json(exportData, {
+    headers: { "Access-Control-Allow-Origin": "*" },
+  });
+}
+
+export async function OPTIONS() {
+  return new Response(null, {
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+    },
+  });
 }

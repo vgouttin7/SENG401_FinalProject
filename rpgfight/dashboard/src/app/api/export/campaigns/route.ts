@@ -23,5 +23,17 @@ export async function GET() {
     stageCount: c._count.stages,
   }));
 
-  return NextResponse.json({ campaigns: result });
+  return NextResponse.json({ campaigns: result }, {
+    headers: { "Access-Control-Allow-Origin": "*" },
+  });
+}
+
+export async function OPTIONS() {
+  return new Response(null, {
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+    },
+  });
 }
